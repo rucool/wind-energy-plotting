@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 5/18/2020
-Last Modified: 5/27/2020
+Last Modified: 6/4/2020
 Creates pcolor plots of wind speed for the most current 3 days of SODAR data.
 """
 
@@ -79,9 +79,39 @@ def main(args):
         df_ws = df_ws.append(file_df)  # append to the wind speed matrix to combine data for multiple days
 
     if len(df_ws) > 0:
+        df_ws = df_ws.reset_index()
+        df_ws['Date and Time'] = pd.to_datetime(df_ws['Date and Time'])  # format time
+
+        # find data gaps > 30 mins
+        for i, row in df_ws.iterrows():
+            if i > 0:
+                t1 = row['Date and Time']
+                t0 = df_ws.iloc[i - 1]['Date and Time']
+
+                # calculate the difference between two rows of data in minutes
+                diff_mins = (t1 - t0).total_seconds() / 60
+
+                # if the data gap is >30 minutes, add rows of data containing nans, which prevents the pcolor function
+                # from filling in data gaps
+                if diff_mins > 30:
+                    line1 = [t0 + dt.timedelta(minutes=10)]
+                    line2 = [t1 - dt.timedelta(minutes=10)]
+                    for c in df_ws.columns:
+                        if 'Wind Speed' in c:
+                            line1.append(float('NaN'))
+                            line2.append(float('NaN'))
+
+                    # add the lines of NaNs to the dataframe
+                    df_ws = df_ws.append(pd.DataFrame([line1], columns=df_ws.columns))
+                    df_ws = df_ws.append(pd.DataFrame([line2], columns=df_ws.columns))
+
+        # sort dataframe on time
+        df_ws.sort_values(by='Date and Time', inplace=True)
+        df_ws = df_ws.set_index('Date and Time')
+
         # make pcolor plot
         ws = df_ws.values * 1.94384  # convert wind speeds from m/s to knots
-        tm = pd.to_datetime(np.array(df_ws.index))
+        tm = np.array(df_ws.index)
         ht = np.array([30, 40, 50, 60, 80, 100, 120, 140, 160, 180, 200])
 
         plt.set_cmap('BuPu')
