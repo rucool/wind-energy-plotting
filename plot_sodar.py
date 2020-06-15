@@ -114,8 +114,7 @@ def wind_spddir_to_uv(wspd, wdir):
 def main(args):
     save_file1 = args.save_file1
     save_file3 = args.save_file3
-    #sodar_dir = '/home/coolgroup/MetData/CMOMS/sodar/daily/'
-    sodar_dir = '/Users/lgarzio/Documents/rucool/bpu/wrf/sodar_plotting/data/'
+    sodar_dir = '/home/coolgroup/MetData/CMOMS/sodar/daily/'
     os.makedirs(os.path.dirname(save_file1), exist_ok=True)
     os.makedirs(os.path.dirname(save_file3), exist_ok=True)
 
