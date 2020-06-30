@@ -60,10 +60,13 @@ def plot_barbs(tm, ht, u, v, sub, clims, ttl, figname):
 
     b = ax.barbs(tm[::sub], ht[::sub], u[::sub], v[::sub], np.sqrt(u * u + v * v)[::sub],
                  fill_empty=True, rounding=False, sizes=dict(emptybarb=0.1, spacing=0.2, height=.3),
-                 clim=clims)
+                 clim=clims, zorder=2)
 
     # add colorbar
     plt.colorbar(b, ax=ax, label='Wind Speed (knots)', extend='both', pad=0.02)
+
+    # add horizontal line at turbine hub height
+    plt.axhline(y=160, ls='-', c='lightgray', zorder=1)
 
     ax.set_title('Tuckerton SODAR Winds: {}'.format(ttl))
     ax.set_ylabel('Height (m)')
