@@ -121,17 +121,17 @@ def main(args):
         ax.tick_params('both', length=5, width=2, which='major')
 
         # define color limits based on max wind speeds
-        if np.nanmax(ws) >= 80:
-            color_lims = [0, 100]
-        elif np.nanmax(ws) >= 60:
-            color_lims = [0, 80]
-        elif np.nanmax(ws) >= 40:
-            color_lims = [0, 60]
-        else:
-            color_lims = [0, 40]
+        # if np.nanmax(ws) >= 80:
+        #     color_lims = [0, 100]
+        # elif np.nanmax(ws) >= 60:
+        #     color_lims = [0, 80]
+        # elif np.nanmax(ws) >= 40:
+        #     color_lims = [0, 60]
+        # else:
+        #     color_lims = [0, 40]
 
-        h = ax.pcolor(tm, ht, ws.T, vmin=color_lims[0], vmax=color_lims[1],)
-        plt.colorbar(h, ax=ax, label='Wind Speed (knots)', extend='both', pad=0.02)
+        h = ax.pcolor(tm, ht, ws.T, vmin=0, vmax=40)
+        plt.colorbar(h, ax=ax, label='Wind Speed (knots)', extend='max', pad=0.02)
 
         ax.set_title('Tuckerton SODAR Wind Speed')
         ax.set_ylabel('Height (m)')

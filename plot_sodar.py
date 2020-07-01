@@ -63,7 +63,7 @@ def plot_barbs(tm, ht, u, v, sub, clims, ttl, figname):
                  clim=clims, zorder=2)
 
     # add colorbar
-    plt.colorbar(b, ax=ax, label='Wind Speed (knots)', extend='both', pad=0.02)
+    plt.colorbar(b, ax=ax, label='Wind Speed (knots)', extend='max', pad=0.02)
 
     # add horizontal line at turbine hub height
     plt.axhline(y=160, ls='-', c='lightgray', zorder=1)
@@ -166,18 +166,19 @@ def main(args):
 
         # get the data for the full 3 days, define the color limits and subsetting for the barbs, and create a plot
         tm3, ht3, u3, v3, wspd3 = format_data(df3day)
-        color_lims3 = define_color_lims(wspd3)
+        # color_lims3 = define_color_lims(wspd3)
+        color_lims = [0, 40]
         sub3 = define_barb_subset(df3day)
 
-        plot_barbs(tm3, ht3, u3, v3, sub3, color_lims3, '3-day', save_file3)
+        plot_barbs(tm3, ht3, u3, v3, sub3, color_lims, '3-day', save_file3)
 
         # get the data for the current day only, define the color limits, do not subset the barbs, and create a plot
         df1day = df3day.loc[df3day['tm'] >= pd.to_datetime(today.strftime('%Y-%m-%d'))]
         tm1, ht1, u1, v1, wspd1 = format_data(df1day)
-        color_lims1 = define_color_lims(wspd1)
+        # color_lims1 = define_color_lims(wspd1)
         sub1 = 1
 
-        plot_barbs(tm1, ht1, u1, v1, sub1, color_lims1, '1-day', save_file1)
+        plot_barbs(tm1, ht1, u1, v1, sub1, color_lims, '1-day', save_file1)
 
 
 if __name__ == '__main__':
