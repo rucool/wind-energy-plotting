@@ -13,6 +13,7 @@ import numpy as np
 import os
 import glob
 import pandas as pd
+import datetime as dt
 import sys
 import xarray as xr
 import matplotlib.pyplot as plt
@@ -143,9 +144,13 @@ def main(args):
                     append_model_data(f, bloc, data['nyserda_south'])
 
         # plot data for each NYSERDA buoy location
-        dt = pd.to_datetime(data['nyserda_north']['t'][0]).strftime('%Y%m%d')
-        dt2 = pd.to_datetime(data['nyserda_north']['t'][0]).strftime('%Y-%m-%d')
-        init_dt_str = '00Z{}'.format(pd.to_datetime(data['nyserda_north']['t'][0]).strftime('%d%b%Y'))
+        if run == 'run1':
+            mdate = pd.to_datetime(data['nyserda_north']['t'][0])
+        else:
+            mdate = pd.to_datetime(data['nyserda_north']['t'][0]) - dt.timedelta(days=1)
+        datestr = mdate.strftime('%Y%m%d')
+        datestr2 = mdate.strftime('%Y-%m-%d')
+        init_dt_str = '00Z{}'.format(mdate.strftime('%d%b%Y'))
 
         for loc, d in data.items():
             if 'north' in loc:
@@ -154,15 +159,15 @@ def main(args):
             elif 'south' in loc:
                 buoy = 'NYSERDA South'
                 buoy_code = 'NYSE06'
-            ttl = 'RU-WRF 4.1 Wind Profiles at {}\n{}: Hours {:03d}-{:03d}'.format(buoy, dt2, info['min_hour'], info['max_hour'])
+            ttl = 'RU-WRF 4.1 Wind Profiles at {}\n{}: Hours {:03d}-{:03d}'.format(buoy, datestr2, info['min_hour'], info['max_hour'])
 
             # plot entire profile
-            sf = 'WRF_wsprofiles_{}_{}_H{:03d}-{:03d}.png'.format(buoy_code, dt, info['min_hour'], info['max_hour'])
+            sf = 'WRF_wsprofiles_{}_{}_H{:03d}-{:03d}.png'.format(buoy_code, datestr, info['min_hour'], info['max_hour'])
             sfpath = os.path.join(save_dir, sf)
             plot_wndsp_profile(d, info, ttl, init_dt_str, sfpath)
 
             # plot profile 0-1000m
-            sf = 'WRF_wsprofiles_{}_{}_H{:03d}-{:03d}_abl.png'.format(buoy_code, dt, info['min_hour'], info['max_hour'])
+            sf = 'WRF_wsprofiles_{}_{}_H{:03d}-{:03d}_abl.png'.format(buoy_code, datestr, info['min_hour'], info['max_hour'])
             sfpath = os.path.join(save_dir, sf)
             plot_wndsp_profile(d, info, ttl, init_dt_str, sfpath, 1200)
 
