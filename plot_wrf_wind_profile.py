@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 6/15/2020
-Last modified: 6/15/2020
+Last modified: 7/14/2020
 Creates profile plots of wind speed from RU-WRF 4.1 at native model levels for hours 1-24 and 25-48 at 2 locations:
 1) NYSERDA North LiDAR Buoy
 2) NYSERDA South LiDAR Buoy
