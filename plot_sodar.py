@@ -117,12 +117,14 @@ def wind_spddir_to_uv(wspd, wdir):
 def main(args):
     save_file1 = args.save_file1
     save_file3 = args.save_file3
+    save_file24 = args.save_file24
     sodar_dir = '/home/coolgroup/MetData/CMOMS/sodar/daily/'
     os.makedirs(os.path.dirname(save_file1), exist_ok=True)
     os.makedirs(os.path.dirname(save_file3), exist_ok=True)
+    os.makedirs(os.path.dirname(save_file24), exist_ok=True)
 
     # define files for the 3 most recent days of data
-    today = dt.datetime.now()
+    today = dt.datetime.utcnow()
     days = [2, 1]
     fext = []
     for d in days:
@@ -169,16 +171,20 @@ def main(args):
         # color_lims3 = define_color_lims(wspd3)
         color_lims = [0, 40]
         sub3 = define_barb_subset(df3day)
-
         plot_barbs(tm3, ht3, u3, v3, sub3, color_lims, '3-day', save_file3)
 
         # get the data for the current day only, define the color limits, do not subset the barbs, and create a plot
         df1day = df3day.loc[df3day['tm'] >= pd.to_datetime(today.strftime('%Y-%m-%d'))]
         tm1, ht1, u1, v1, wspd1 = format_data(df1day)
-        # color_lims1 = define_color_lims(wspd1)
         sub1 = 1
-
         plot_barbs(tm1, ht1, u1, v1, sub1, color_lims, '1-day', save_file1)
+
+        # get the data for the current 24 hours only, define the color limits, do not subset the barbs, and create a plot
+        hrs24 = pd.to_datetime(today - dt.timedelta(hours=24)).strftime('%Y-%m-%d %H:%M:00')
+        df24 = df3day.loc[df3day['tm'] >= hrs24]
+        tm24, ht24, u24, v24, wspd24 = format_data(df24)
+        sub24 = 1
+        plot_barbs(tm24, ht24, u24, v24, sub24, color_lims, '24 hours', save_file24)
 
 
 if __name__ == '__main__':
@@ -193,6 +199,11 @@ if __name__ == '__main__':
                             dest='save_file3',
                             type=str,
                             help='Full file path to save directory and save filename for 3 day plot')
+
+    arg_parser.add_argument('-s24', '--save_file24',
+                            dest='save_file24',
+                            type=str,
+                            help='Full file path to save directory and save filename for 24 hour plot')
 
     parsed_args = arg_parser.parse_args()
     sys.exit(main(parsed_args))
