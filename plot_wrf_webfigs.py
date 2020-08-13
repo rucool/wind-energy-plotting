@@ -433,8 +433,7 @@ def wind_uv_to_spd(u, v):
 def main(args):
     start_time = time.time()
     wrf_procdir = args.wrf_dir
-    # sDir = '/home/coolgroup/ru-wrf/real-time/v4.1_parallel/scripts/webfigs'
-    sDir = '/home/lgarzio/rucool/bpu/wrf/webfigs'
+    sDir = '/home/coolgroup/ru-wrf/real-time/v4.1_parallel/scripts/webfigs'
 
     if wrf_procdir.endswith('/'):
         ext = '*.nc'
