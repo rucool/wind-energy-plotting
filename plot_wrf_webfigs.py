@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 5/28/2020
-Last modified: 8/13/2020
+Last modified: 8/14/2020
 Creates hourly plots of RU-WRF output variables: air temperature at 2m, wind speed at 10m and 150m, hourly rainfall +
 sea level pressure, and daily accumulated rainfall. The plots are used to populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
