@@ -100,7 +100,8 @@ def add_text(ax, run_date, time_coverage_start, model):
     ax.text(.275, -.13, insert_text2, size=10, transform=ax.transAxes)
 
 
-def plot_contourf(fig, ax, ttl, lon_data, lat_data, var_data, clevs, cmap, norm, clab):
+def plot_contourf(fig, ax, ttl, lon_data, lat_data, var_data, clevs, cmap, clab, var_min, var_max, normalize,
+                  cbar_ticks=None):
     """
     Create a filled contour plot with user-defined levels and colors
     :param fig: figure object
@@ -111,8 +112,11 @@ def plot_contourf(fig, ax, ttl, lon_data, lat_data, var_data, clevs, cmap, norm,
     :param var_data: variable data
     :param clevs: list of colorbar level demarcations
     :param cmap: colormap
-    :param norm: object that normalizes the colorbar level demarcations
     :param clab: colorbar label
+    :param var_min: optional, minimum value for plotting (for fixed colorbar)
+    :param var_max: optional, maximum value for plotting (for fixed colorbar)
+    :param normalize: optional, object that normalizes the colorbar level demarcations
+    :param cbar_ticks: optional, specify colorbar ticks
     :returns fig, ax objects
     """
     plt.subplots_adjust(right=0.88)
@@ -121,14 +125,25 @@ def plot_contourf(fig, ax, ttl, lon_data, lat_data, var_data, clevs, cmap, norm,
     cax = divider.new_horizontal(size='5%', pad=0.1, axes_class=plt.Axes)
     fig.add_axes(cax)
 
-    cs = ax.contourf(lon_data, lat_data, var_data, clevs, cmap=cmap, norm=norm, transform=ccrs.PlateCarree(), alpha=.9)
-    cb = plt.colorbar(cs, cax=cax)
+    if normalize == 'yes':
+        norm = mpl.colors.BoundaryNorm(clevs, 15)
+        cs = ax.contourf(lon_data, lat_data, var_data, clevs, cmap=cmap, norm=norm, transform=ccrs.PlateCarree(),
+                         alpha=.9)
+    else:
+        cs = ax.contourf(lon_data, lat_data, var_data, clevs, vmin=var_min, vmax=var_max, cmap=cmap,
+                         transform=ccrs.PlateCarree(), alpha=.9)
+
+    if cbar_ticks is not None:
+        cb = plt.colorbar(cs, cax=cax, ticks=cbar_ticks)
+    else:
+        cb = plt.colorbar(cs, cax=cax)
+
     cb.set_label(label=clab, fontsize=14)
 
     return fig, ax
 
 
-def plot_pcolor(fig, ax, ttl, lon_data, lat_data, var_data, var_min, var_max, cmap, clab):
+def plot_pcolormesh(fig, ax, ttl, lon_data, lat_data, var_data, var_min, var_max, cmap, clab):
     """
     Create a pseudocolor plot
     :param fig: figure object
@@ -141,7 +156,6 @@ def plot_pcolor(fig, ax, ttl, lon_data, lat_data, var_data, var_min, var_max, cm
     :param var_max: maximum value for plotting (for fixed colorbar)
     :param cmap: color map
     :param clab: colorbar label
-    :returns fig, ax objects
     """
     plt.subplots_adjust(right=0.88)
     plt.title(ttl, fontsize=17)
@@ -149,12 +163,10 @@ def plot_pcolor(fig, ax, ttl, lon_data, lat_data, var_data, var_min, var_max, cm
     cax = divider.new_horizontal(size='5%', pad=0.1, axes_class=plt.Axes)
     fig.add_axes(cax)
 
-    h = ax.pcolor(lon_data, lat_data, var_data, vmin=var_min, vmax=var_max, cmap=cmap, transform=ccrs.PlateCarree())
+    h = ax.pcolormesh(lon_data, lat_data, var_data, vmin=var_min, vmax=var_max, cmap=cmap, transform=ccrs.PlateCarree())
 
     cb = plt.colorbar(h, cax=cax)
     cb.set_label(label=clab, fontsize=14)
-
-    return fig, ax
 
 
 def plt_2m_temp(nc, model, figname):
@@ -177,18 +189,27 @@ def plt_2m_temp(nc, model, figname):
             t2_sub, ax_lims = subset_grid(t2, 'bight')
 
         fig, ax, lat, lon = set_map(t2_sub)
-        d = np.squeeze(t2_sub.values) * 9/5 - 459.67  # convert K to F
-
-        fig, ax = plot_pcolor(fig, ax, '2m {}'.format(color_label), lon, lat, d, -20, 110, 'jet', color_label)
-
-        # add contour lines
-        contour_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-        add_contours(ax, lon, lat, d, contour_list)
 
         # add text to the bottom of the plot
         add_text(ax, nc.SIMULATION_START_DATE, nc.time_coverage_start, model)
 
         add_map_features(ax, ax_lims)
+
+        # convert K to F
+        d = np.squeeze(t2_sub.values) * 9/5 - 459.67
+
+        # add contour lines
+        contour_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+        add_contours(ax, lon, lat, d, contour_list)
+
+        # plot data
+        # pcolormesh: coarser resolution, shows the actual resolution of the model data
+        plot_pcolormesh(fig, ax, '2m {}'.format(color_label), lon, lat, d, -20, 110, 'jet', color_label)
+
+        # contourf: smooths the resolution of the model data, plots are less pixelated
+        # levels = np.arange(-20, 110.5, .5)
+        # plot_contourf(fig, ax, color_label, lon, lat, d, levels, 'jet', color_label, var_min=-20, var_max=110,
+        #               normalize='no', cbar_ticks=np.linspace(-20, 100, 7))
 
         plt.savefig(figname, dpi=200)
         plt.close()
@@ -239,6 +260,11 @@ def plt_rain(nc, model, figname, raintype, ncprev=None):
 
         fig, ax, lat, lon = set_map(rn_sub)
 
+        # add text to the bottom of the plot
+        add_text(ax, nc.SIMULATION_START_DATE, nc.time_coverage_start, model)
+
+        add_map_features(ax, ax_lims)
+
         # convert mm to inches
         rn_sub = rn_sub * 0.0394
 
@@ -264,21 +290,16 @@ def plt_rain(nc, model, figname, raintype, ncprev=None):
 
         # specify colorbar level demarcations
         levels = [0.01, 0.1, 0.25, 0.50, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10., 12.]
-        norm = mpl.colors.BoundaryNorm(levels, 15)
 
         # plot data
-        plot_contourf(fig, ax, title, lon, lat, rn_sub, levels, precip_colormap, norm, color_label)
+        plot_contourf(fig, ax, title, lon, lat, rn_sub, levels, precip_colormap, color_label, var_min=None,
+                      var_max=None, normalize='yes')
 
         # add slp as contours if provided
         if slp is not None:
             contour_list = [940, 944, 948, 952, 956, 960, 964, 968, 972, 976, 980, 984, 988, 992, 996, 1000, 1004, 1008,
                             1012, 1016, 1020, 1024, 1028, 1032, 1036, 1040]
             add_contours(ax, lon, lat, slp_sub, contour_list)
-
-        # add text to the bottom of the plot
-        add_text(ax, nc.SIMULATION_START_DATE, nc.time_coverage_start, model)
-
-        add_map_features(ax, ax_lims)
 
         plt.savefig(figname, dpi=200)
         plt.close()
@@ -321,26 +342,35 @@ def plt_windsp(nc, model, ht, figname):
             qs = quiver_subset['bight_{}'.format(model)]['_{}'.format(ht)]
 
         fig, ax, lat, lon = set_map(u_sub)
-        u_sub = np.squeeze(u_sub.values) * 1.94384  # convert wind speeds from m/s to knots
-        v_sub = np.squeeze(v_sub.values) * 1.94384
-
-        # calculate wind speed from u and v
-        speed = wind_uv_to_spd(u_sub, v_sub)
-
-        fig, ax = plot_pcolor(fig, ax, '{} {}'.format(ht, color_label), lon, lat, speed, 0, 40, 'BuPu', color_label)
-
-        # subset the quivers and add as a layer
-        ax.quiver(lon[::qs, ::qs], lat[::qs, ::qs], u_sub[::qs, ::qs], v_sub[::qs, ::qs], scale=1000,
-                  width=.002, headlength=4, transform=ccrs.PlateCarree())
-
-        # add contours
-        contour_list = [25, 34, 48]
-        add_contours(ax, lon, lat, speed, contour_list)
 
         # add text to the bottom of the plot
         add_text(ax, nc.SIMULATION_START_DATE, nc.time_coverage_start, model)
 
         add_map_features(ax, ax_lims)
+
+        # convert wind speeds from m/s to knots
+        u_sub = np.squeeze(u_sub.values) * 1.94384
+        v_sub = np.squeeze(v_sub.values) * 1.94384
+
+        # calculate wind speed from u and v
+        speed = wind_uv_to_spd(u_sub, v_sub)
+
+        # add contours
+        contour_list = [25, 34, 48]
+        add_contours(ax, lon, lat, speed, contour_list)
+
+        # plot data
+        # pcolormesh: coarser resolution, shows the actual resolution of the model data
+        plot_pcolormesh(fig, ax, '{} {}'.format(ht, color_label), lon, lat, speed, 0, 40, 'BuPu', color_label)
+
+        # contourf: smooths the resolution of the model data, plots are less pixelated
+        # levels = np.arange(0, 40.1, .1)
+        # plot_contourf(fig, ax, color_label, lon, lat, speed, levels, 'BuPu', color_label, var_min=0, var_max=40,
+        #               normalize='no', cbar_ticks=np.linspace(0, 40, 9))
+
+        # subset the quivers and add as a layer
+        ax.quiver(lon[::qs, ::qs], lat[::qs, ::qs], u_sub[::qs, ::qs], v_sub[::qs, ::qs], scale=1000,
+                  width=.002, headlength=4, transform=ccrs.PlateCarree())
 
         plt.savefig(figname, dpi=200)
         plt.close()
@@ -477,7 +507,7 @@ def main(args):
                 plt_rain(ncfile, model_ver, sfile, 'hourly', nc_prev)
 
     print('')
-    print('Script run time: {} minutes'.format(round((time.time() - start_time) / 60)))
+    print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))
 
 
 if __name__ == '__main__':
