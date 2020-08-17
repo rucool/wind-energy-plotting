@@ -24,3 +24,9 @@ Create conda environment from the included environment.yml file:
 Once the environment is done building, activate the environment:
 
 `conda activate wind-energy-plotting`
+
+Install the toolbox to the conda environment from the root directory of the wind-energy-plotting toolbox:
+
+`pip install .`
+
+The toolbox should now be installed to your conda environment.
