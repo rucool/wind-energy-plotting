@@ -2,8 +2,8 @@
 
 """
 Author: Lori Garzio on 5/18/2020
-Last Modified: 6/30/2020
-Creates two wind barb plots: 1) for the most current 3 days, and 2) for the current day of SODAR data.
+Last Modified: 7/23/2020
+Creates three wind barb plots: 1) current 3 days, 2) current 1 day, and 3) current 24 hours.
 """
 
 import argparse
