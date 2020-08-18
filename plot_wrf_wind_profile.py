@@ -177,8 +177,9 @@ if __name__ == '__main__':
 
     arg_parser.add_argument('-wd', '--wrf_dir',
                             dest='wrf_dir',
+                            default='/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed/modlevs/3km/20200615',
                             type=str,
-                            help='Full path to Raw WRF native model level directory')
+                            help='Full path to subset WRF native model level directory')
 
     arg_parser.add_argument('-sd', '--save_dir',
                             dest='save_dir',
