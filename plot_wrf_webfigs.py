@@ -38,4 +38,7 @@ wrf_webfigs.plot_T2.main(parsed_args)
 print('\nPlotting windspeed')
 wrf_webfigs.plot_windspeed.main(parsed_args)
 
+print('\nPlotting snow')
+wrf_webfigs.plot_snow.main(parsed_args)
+
 sys.exit()
