@@ -28,8 +28,8 @@ def plt_snow(nc, model, figname, snowtype, ncprev=None):
     :param nc: netcdf file
     :param model: the model version that is being plotted, e.g. 3km or 9km
     :param figname: full file path to save directory and save filename
-    :param raintype: plot type to make, e.g. 'acc' (accumulated) or 'hourly'
-    :param ncprev: optional, netcdf file from the previous model hour to calculate hourly rainfall
+    :param snowtype: plot type to make, e.g. 'acc' (accumulated) or 'hourly'
+    :param ncprev: optional, netcdf file from the previous model hour to calculate hourly snowfall
     """
     # SNOWNC = water equivalent of total accumulated snowfall
     snow = nc['SNOWNC']
