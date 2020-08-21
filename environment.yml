@@ -10,3 +10,4 @@ dependencies:
   - cartopy=0.18.0
   - wrf-python=1.3.2
   - cmocean=2.0
+  - arm_pyart=1.11.1
