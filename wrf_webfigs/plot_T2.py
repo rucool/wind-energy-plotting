@@ -78,9 +78,9 @@ def main(args):
         ext = '/*.nc'
     files = sorted(glob.glob(wrf_procdir + ext))
 
-    # get the model version (3km or 9km) from the directory path
+    # get the model version (3km or 9km) from the filename
     f0 = files[0]
-    model_ver = f0.split('/')[-3]  # 3km or 9km
+    model_ver = f0.split('/')[-1].split('_')[1]  # 3km or 9km
     os.makedirs(save_dir, exist_ok=True)
 
     for i, f in enumerate(files):
