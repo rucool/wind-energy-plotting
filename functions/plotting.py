@@ -51,7 +51,7 @@ def plot_contourf(fig, ax, ttl, lon_data, lat_data, var_data, clevs, cmap, clab,
 
     if normalize == 'yes':
         #norm = mpl.colors.BoundaryNorm(clevs, 15)
-        norm = mpl.colors.BoundaryNorm(clevs, len(clevs)+1)
+        norm = mpl.colors.BoundaryNorm(clevs, len(clevs)-1)
         cs = ax.contourf(lon_data, lat_data, var_data, clevs, cmap=cmap, norm=norm, transform=ccrs.PlateCarree(),
                          alpha=.9)
     else:
