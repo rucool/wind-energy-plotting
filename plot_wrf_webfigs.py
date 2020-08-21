@@ -2,9 +2,10 @@
 
 """
 Author: Lori Garzio on 8/17/2020
-Last modified: 8/17/2020
-This is a wrapper script that imports tools to plot RU-WRF 4.1 data using the subset .nc files. The plots are used to
-populate RUCOOL's RU-WRF webpage:
+Last modified: 8/19/2020
+This is a wrapper script that imports tools to plot RU-WRF 4.1 data using the subset .nc files.
+Plots created: Hourly and Accumulated Rainfall, Air Temperature at 2m, Windspeeds at 10m and 150m, and Hourly and
+Accumulated Snowfall. The plots are used to populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
 """
 
