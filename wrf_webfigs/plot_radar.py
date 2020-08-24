@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/21/2020
-Last modified: 8/21/2020
+Last modified: 8/24/2020
 Creates hourly plots of RU-WRF 4.1 output variables: radar composite reflectivity.
 The plots are used to populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -29,20 +29,17 @@ def plt_radar(nc, model, figname):
     :param model: the model version that is being plotted, e.g. 3km or 9km
     :param figname: full file path to save directory and save filename
     """
-    # RAINNC = total accumulated rainfall
-    radar = nc['REFL_10CM']
-
-    # calculate maximum radar reflectivity among each level
-    max_radar = np.max(np.squeeze(radar), axis=0)
+    # MDBZ = max radar reflectivity
+    radar = nc['MDBZ']
 
     plot_types = ['full_grid', 'bight']  # plot the full grid and just NY Bight area
     for pt in plot_types:
         if pt == 'full_grid':  # subset the entire grid
-            radar_sub, ax_lims = cf.subset_grid(max_radar, model)
+            radar_sub, ax_lims = cf.subset_grid(radar, model)
         else:  # subset just NY Bight
             new_fname = 'bight_{}'.format(figname.split('/')[-1])
             figname = '/{}/{}'.format(os.path.join(*figname.split('/')[0:-1]), new_fname)
-            radar_sub, ax_lims = cf.subset_grid(max_radar, 'bight')
+            radar_sub, ax_lims = cf.subset_grid(radar, 'bight')
 
         fig, ax, lat, lon = cf.set_map(radar_sub)
 
@@ -102,9 +99,9 @@ if __name__ == '__main__':
 
     arg_parser.add_argument('-wrf_dir',
                             dest='wrf_dir',
-                            default='/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed/modlevs/3km/20200101',
+                            default='/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed/3km/20200101',
                             type=str,
-                            help='Full directory path to subset WRF native model level netCDF files.')
+                            help='Full directory path to subset WRF netCDF files.')
 
     arg_parser.add_argument('-save_dir',
                             dest='save_dir',

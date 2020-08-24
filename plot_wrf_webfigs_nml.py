@@ -2,9 +2,9 @@
 
 """
 Author: Lori Garzio on 8/17/2020
-Last modified: 8/21/2020
+Last modified: 8/24/2020
 This is a wrapper script that imports tools to plot RU-WRF 4.1 data using the subset native model level .nc files.
-Plots created: Cloud Cover and Radar Reflectivity. The plots are used to populate RUCOOL's RU-WRF webpage:
+Plots created: Cloud Cover. The plots are used to populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
 """
 
@@ -31,8 +31,5 @@ parsed_args = arg_parser.parse_args()
 
 print('Plotting cloud cover')
 wrf_webfigs.plot_cloudfrac.main(parsed_args)
-
-print('Plotting radar reflectivity')
-wrf_webfigs.plot_radar.main(parsed_args)
 
 sys.exit()
