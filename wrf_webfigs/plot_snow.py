@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/17/2020
-Last modified: 8/19/2020
+Last modified: 8/25/2020
 Creates hourly plots of RU-WRF 4.1 output variables: hourly snowfall, and daily accumulated snowfall.
 The plots are used to populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -41,8 +41,7 @@ def plt_snow(nc, model, figname, snowtype, ncprev=None):
         color_label = 'Total Accumulated Snow 10:1 (in)'
 
         # specify colorbar level demarcations and contour levels
-        levels = [-0.5, 0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20]
-        cbar_ticks = [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20]
+        levels = [0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20]
         contour_list = [0, 2, 4, 6, 10, 20]
 
     elif snowtype == 'hourly':
@@ -56,8 +55,7 @@ def plt_snow(nc, model, figname, snowtype, ncprev=None):
             snow = snow
 
             # specify colorbar level demarcations and contour levels
-        levels = [-0.5, 0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5]
-        cbar_ticks = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5]
+        levels = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5]
         contour_list = [0, 1, 2, 3, 4, 5]
 
     for pt in plot_types:
@@ -79,8 +77,6 @@ def plt_snow(nc, model, figname, snowtype, ncprev=None):
         cf.add_map_features(ax, ax_lims)
 
         snow_colors = [
-            "#ffffff",
-            "#deebf7",
             "#c6dbef",
             "#9ecae1",
             "#6baed6",
@@ -95,9 +91,13 @@ def plt_snow(nc, model, figname, snowtype, ncprev=None):
         ]
         snow_colormap = mpl.colors.ListedColormap(snow_colors)
 
+        # make 0 white instead of blue without showing up on the colorbar
+        snow_colormap.set_under('white')
+        levels[0] = 1e-10
+
         # plot data
         pf.plot_contourf(fig, ax, color_label, lon, lat, snow_in, levels, snow_colormap, color_label, var_min=None,
-                         var_max=None, normalize='yes', cbar_ticks=cbar_ticks)
+                         var_max=None, normalize='yes', cbar_ticks=levels)
 
         # add contours
         pf.add_contours(ax, lon, lat, snow_in, contour_list)
