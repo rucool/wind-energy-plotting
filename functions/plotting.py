@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/17/2020
-Last modified: 8/17/2020
+Last modified: 8/25/2020
 """
 
 import matplotlib as mpl
@@ -11,7 +11,7 @@ import cartopy.crs as ccrs
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
-def add_contours(ax, londata, latdata, vardata, clist):
+def add_contours(ax, londata, latdata, vardata, clist, label_format=None):
     """
     Adds black contour lines with labels to a cartopy map object
     :param ax: plotting axis object
@@ -19,9 +19,14 @@ def add_contours(ax, londata, latdata, vardata, clist):
     :param latdata: latitude data
     :param vardata: variable data
     :param clist: list of contour levels
+    :param label_format: optional format for contour labels (e.g. '%.1f')
     """
     CS = ax.contour(londata, latdata, vardata, clist, colors='black', linewidths=.5, transform=ccrs.PlateCarree())
-    ax.clabel(CS, inline=True, fontsize=10.5, fmt='%d')
+    if label_format is None:
+        lf = '%d'
+    else:
+        lf = label_format
+    ax.clabel(CS, inline=True, fontsize=10.5, fmt=lf)
 
 
 def plot_contourf(fig, ax, ttl, lon_data, lat_data, var_data, clevs, cmap, clab, var_min, var_max, normalize,

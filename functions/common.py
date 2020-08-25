@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/17/2020
-Last modified: 8/17/2020
+Last modified: 8/25/2020
 """
 
 import numpy as np
@@ -13,12 +13,13 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
 
-def add_map_features(ax, axes_limits, landcolor=None):
+def add_map_features(ax, axes_limits, landcolor=None, ecolor=None):
     """
     Adds latitude and longitude gridlines and labels, coastlines, and statelines to a cartopy map object
     :param ax: plotting axis object
     :param axes_limits: list of axis limits [min lon, max lon, min lat, max lat]
     :param landcolor: optional, specify land color
+    :param ecolor: optional, specify edge color, default is black
     """
     gl = ax.gridlines(draw_labels=True, linewidth=1, color='gray', alpha=0.5, linestyle='dotted', x_inline=False)
     gl.top_labels = False
@@ -40,7 +41,12 @@ def add_map_features(ax, axes_limits, landcolor=None):
     else:
         lc = 'none'
 
-    ax.add_feature(land, zorder=5, edgecolor='black', facecolor=lc)
+    if ecolor is not None:
+        ec = ecolor
+    else:
+        ec = 'black'
+
+    ax.add_feature(land, zorder=5, edgecolor=ec, facecolor=lc)
 
     state_lines = cfeature.NaturalEarthFeature(
         category='cultural',
@@ -48,8 +54,8 @@ def add_map_features(ax, axes_limits, landcolor=None):
         scale='10m',
         facecolor='none')
 
-    ax.add_feature(cfeature.BORDERS, zorder=6)
-    ax.add_feature(state_lines, zorder=7, edgecolor='black')
+    ax.add_feature(cfeature.BORDERS, zorder=6, edgecolor=ec)
+    ax.add_feature(state_lines, zorder=7, edgecolor=ec)
 
 
 def add_text(ax, run_date, time_coverage_start, model):
