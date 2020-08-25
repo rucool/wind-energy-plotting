@@ -13,11 +13,12 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
 
-def add_map_features(ax, axes_limits):
+def add_map_features(ax, axes_limits, landcolor=None):
     """
     Adds latitude and longitude gridlines and labels, coastlines, and statelines to a cartopy map object
     :param ax: plotting axis object
     :param axes_limits: list of axis limits [min lon, max lon, min lat, max lat]
+    :param landcolor: optional, specify land color
     """
     gl = ax.gridlines(draw_labels=True, linewidth=1, color='gray', alpha=0.5, linestyle='dotted', x_inline=False)
     gl.top_labels = False
@@ -33,7 +34,13 @@ def add_map_features(ax, axes_limits):
     ax.set_extent(axes_limits)
 
     land = cfeature.NaturalEarthFeature('physical', 'land', '10m')
-    ax.add_feature(land, zorder=5, edgecolor='black', facecolor='none')
+
+    if landcolor is not None:
+        lc = landcolor
+    else:
+        lc = 'none'
+
+    ax.add_feature(land, zorder=5, edgecolor='black', facecolor=lc)
 
     state_lines = cfeature.NaturalEarthFeature(
         category='cultural',
