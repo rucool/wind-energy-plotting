@@ -2,8 +2,8 @@
 
 """
 Author: Lori Garzio on 5/28/2020
-Last modified: 8/17/2020
-Creates hourly plots of RU-WRF 4.1 output variables: wind speed at 10m and 150m. The plots are used to populate
+Last modified: 8/26/2020
+Creates hourly plots of RU-WRF 4.1 output variables: wind speed at 10m, 80m and 160m. The plots are used to populate
 RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
 """
@@ -27,23 +27,23 @@ def plt_windsp(nc, model, ht, figname):
     Create pseudocolor surface maps of wind speed with quivers indicating wind direction.
     :param nc: netcdf file
     :param model: the model version that is being plotted, e.g. 3km or 9km
-    :param ht: wind speed height to plot, e.g. 10m, 150m
+    :param ht: wind speed height to plot, e.g. 10m, 80m, 160m
     :param figname: full file path to save directory and save filename
     """
     if ht == '10m':
         u = nc['U10']
         v = nc['V10']
-    elif ht == '150m':
-        u = nc.sel(height=150)['U']
-        v = nc.sel(height=150)['V']
+    else:
+        u = nc.sel(height=int(ht[0:-1]))['U']
+        v = nc.sel(height=int(ht[0:-1]))['V']
 
     color_label = 'Wind Speed (knots)'
 
     # define the subsetting for the quivers on the map based on model and height
-    quiver_subset = dict(_3km=dict(_10m=11, _150m=13),
-                         _9km=dict(_10m=4, _150m=6),
-                         bight_3km=dict(_10m=6, _150m=7),
-                         bight_9km=dict(_10m=2, _150m=3))
+    quiver_subset = dict(_3km=dict(_10m=11, _80m=12, _160m=13),
+                         _9km=dict(_10m=4, _80m=5, _160m=6),
+                         bight_3km=dict(_10m=6, _80m=6, _160m=7),
+                         bight_9km=dict(_10m=2, _80m=2, _160m=3))
 
     plot_types = ['full_grid', 'bight']
     for pt in plot_types:
@@ -73,7 +73,7 @@ def plt_windsp(nc, model, ht, figname):
         speed = wind_uv_to_spd(u_sub, v_sub)
 
         # add contours
-        contour_list = [25, 34, 48]
+        contour_list = [22, 34, 48, 64]
         pf.add_contours(ax, lon, lat, speed, contour_list)
 
         # plot data
@@ -122,7 +122,7 @@ def main(args):
     os.makedirs(save_dir, exist_ok=True)
 
     # List of variables to plot
-    plt_vars = ['U10', 'U150']
+    plt_vars = ['ws10', 'ws80', 'ws160']
 
     for i, f in enumerate(files):
         fname = f.split('/')[-1].split('.')[0]
@@ -130,10 +130,12 @@ def main(args):
         ncfile = xr.open_dataset(f, mask_and_scale=False)
         for pv in plt_vars:
             sfile = cf.save_filepath(save_dir, pv, splitter)
-            if pv == 'U10':
+            if pv == 'ws10':
                 plt_windsp(ncfile, model_ver, '10m', sfile)
-            elif pv == 'U150':
-                plt_windsp(ncfile, model_ver, '150m', sfile)
+            elif pv == 'ws80':
+                plt_windsp(ncfile, model_ver, '80m', sfile)
+            elif pv == 'ws160':
+                plt_windsp(ncfile, model_ver, '160m', sfile)
 
     print('')
     print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))

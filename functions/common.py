@@ -97,10 +97,6 @@ def save_filepath(save_dir, varname, sp):
     :param sp: list containing original netcdf file name split into components, e.g. ['wrfproc', '3km', '20200720', '00Z', 'H000']
     :returns savefilepath: full file path to save directory and save filename
     """
-    if varname == 'U10':
-        varname = 'ws10'
-    elif varname == 'U150':
-        varname = 'ws150'
 
     sf = '{}_{}_{}_{}.png'.format(varname, sp[1], sp[2], sp[-1].split('.')[0])
 
