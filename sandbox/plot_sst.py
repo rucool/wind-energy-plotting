@@ -75,7 +75,7 @@ def plt_sst(nc, model, figname):
         # pf.plot_contourf(fig, ax, title, lon, lat, sst_sub_c, levels, cmo.cm.thermal, color_label, var_min=0,
         #                  var_max=32, normalize='no', cbar_ticks=np.linspace(0, 30, 7))
 
-        cf.add_map_features(ax, ax_lims, 'lightgray')
+        cf.add_map_features(ax, ax_lims, landcolor='lightgray')
 
         plt.savefig(figname, dpi=200)
         plt.close()
