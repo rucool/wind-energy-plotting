@@ -2,9 +2,9 @@
 
 """
 Author: Lori Garzio on 8/24/2020
-Last modified: 8/25/2020
-Creates hourly plots of RU-WRF 4.1 output variables: downwelling shortwave irradiance and diffuse fraction of shortwave
-irradiance. The plots are used to populate RUCOOL's RU-WRF webpage:
+Last modified: 8/26/2020
+Creates hourly plots of RU-WRF 4.1 output variables: Total, Diffuse, and Direct Shortwave Flux. The plots are used to
+populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
 """
 
@@ -23,28 +23,27 @@ plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise
 
 def plt_solar(nc, model, figname):
     """
-    Create a pcolor surface map of air temperature at 2m with contours
+    Create pcolor surface maps of total, diffuse, and direct shortwave flux with contours
     :param nc: netcdf file
     :param model: the model version that is being plotted, e.g. 3km or 9km
     :param figname: full file path to save directory and save filename
     """
     varname = figname.split('/')[-1].split('_')[0]
-    if varname == 'srad':
+    color_label = r'Surface Downwelling Shortwave Flux (W $\rm m^{-2}$)'  # \rm removes the italics
+    mingray = 100  # minimum average value for making the state/coastlines gray
+    vmin = 0.0
+    vmax = 1200
+    contour_list = np.linspace(200, 1000, 5)
+
+    if varname == 'swdown':
         solar = nc['SWDOWN']
-        color_label = r'Surface Downwelling Shortwave Flux (W $\rm m^{-2}$)'  # \rm removes the italics'
-        mingray = 50  # minimum value for making the state/coastlines gray
-        vmin = 0.0
-        vmax = 1000
-        contour_list = np.linspace(200, 1000, 5)
-        lab_format = None  # defaults to '%d' in function
+        title = r'Total Shortwave Flux (W $\rm m^{-2}$)'
     elif varname == 'diffuse':
-        solar = nc['DIFFUSE_FRAC']
-        color_label = 'Diffuse Fraction of Surface Shortwave Irradiance'
-        mingray = 0.1  # minimum value for making the state/coastlines gray
-        vmin = 0.0
-        vmax = 1.0
-        contour_list = np.linspace(.2, 1, 5)
-        lab_format = '%.1f'
+        solar = nc['SWDOWN'] * nc['DIFFUSE_FRAC']
+        title = r'Diffuse Shortwave Flux (W $\rm m^{-2}$)'
+    elif varname == 'direct':
+        solar = nc['SWDOWN'] * (1 - nc['DIFFUSE_FRAC'])
+        title = r'Direct Shortwave Flux (W $\rm m^{-2}$)'
 
     plot_types = ['full_grid', 'bight']  # plot the full grid and just NY Bight area
     for pt in plot_types:
@@ -60,17 +59,22 @@ def plt_solar(nc, model, figname):
         # add text to the bottom of the plot
         cf.add_text(ax, nc.SIMULATION_START_DATE, nc.time_coverage_start, model)
 
-        # change the state and coastline edges to gray if there is no solar radiation
-        if np.nanmax(solar_sub) < mingray:
+        # for diffuse shortwave flux, make state and coastline edgecolor gray
+        # for total and direct, change the state and coastline edgecolor to gray if solar radiation is beneath
+        # a certain threshold
+        if varname == 'diffuse':
             cf.add_map_features(ax, ax_lims, ecolor='#525252')
         else:
-            cf.add_map_features(ax, ax_lims)
+            if np.nanmean(solar_sub) < mingray:
+                cf.add_map_features(ax, ax_lims, ecolor='#525252')
+            else:
+                cf.add_map_features(ax, ax_lims)
 
         # add contour lines
-        pf.add_contours(ax, lon, lat, solar_sub, contour_list, label_format=lab_format)
+        pf.add_contours(ax, lon, lat, solar_sub, contour_list)
 
         # plot data
-        pf.plot_pcolormesh(fig, ax, color_label, lon, lat, solar_sub, vmin, vmax, plt.cm.CMRmap, color_label)
+        pf.plot_pcolormesh(fig, ax, title, lon, lat, solar_sub, vmin, vmax, plt.cm.CMRmap, color_label)
 
         plt.savefig(figname, dpi=200)
         plt.close()
@@ -93,7 +97,7 @@ def main(args):
     os.makedirs(save_dir, exist_ok=True)
 
     # List of variables to plot
-    plt_vars = ['srad', 'diffuse_srad']
+    plt_vars = ['swdown', 'diffuse_swdown', 'direct_swdown']
 
     for i, f in enumerate(files):
         fname = f.split('/')[-1].split('.')[0]
@@ -108,7 +112,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    arg_parser = argparse.ArgumentParser(description='Plot downwelling shortwave irradiance and diffuse fraction of shortwave irradiance',
+    arg_parser = argparse.ArgumentParser(description='Plot total, diffuse, and direct shortwave flux',
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     arg_parser.add_argument('-wrf_dir',
