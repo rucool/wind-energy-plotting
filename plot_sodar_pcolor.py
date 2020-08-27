@@ -31,7 +31,7 @@ def main(args):
     os.makedirs(os.path.dirname(save_file), exist_ok=True)
 
     # define files for the 3 most recent days of data
-    today = dt.datetime.now()
+    today = dt.datetime.utcnow()
     days = [2, 1]
     fext = []
     for d in days:
