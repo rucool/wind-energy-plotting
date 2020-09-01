@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 5/18/2020
-Last Modified: 7/23/2020
+Last Modified: 9/1/2020
 Creates three wind barb plots: 1) current 3 days, 2) current 1 day, and 3) current 24 hours.
 """
 
@@ -69,6 +69,7 @@ def plot_barbs(tm, ht, u, v, sub, clims, ttl, figname):
     plt.axhline(y=160, ls='-', c='lightgray', zorder=1)
 
     ax.set_title('Tuckerton SODAR Winds: {}'.format(ttl))
+    ax.set_title('rucool.marine.rutgers.edu', fontsize=11, loc='right')
     ax.set_ylabel('Height (m)')
     ax.set_xlabel('Time (GMT)')
     plt.ylim(10, 220)
