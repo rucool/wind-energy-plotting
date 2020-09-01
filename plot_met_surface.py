@@ -107,7 +107,7 @@ def main(args):
     ax.plot(tm, sonic_ws, color='#1f78b4', label='Wind Speed - Sonic')  # blue
 
     title = 'Met Tower Winds at 12m'
-    ylab = r'Wind Speed (m $\rm s^{-2}$)'
+    ylab = r'Wind Speed (m $\rm s^{-1}$)'
 
     if np.nanmax(gust) > 30:
         y_limits = [0, 40]
