@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 9/1/2020
-Last Modified: 9/1/2020
+Last Modified: 9/2/2020
 Creates timeseries plots of wind speed, air temperature, and sea level pressure from RUCOOL's meteorological tower.
 These plots are used to populate RUCOOL's Coastal Metocean Monitoring Station webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/coastal-metocean-monitoring-station/
@@ -28,7 +28,7 @@ def format_date_axis(axis):
 
 def format_plot(axis, date, ttl, ylabel, legend, ylims=None, yticks=None):
     axis.set_title(ttl, fontsize=14)
-    axis.set_title('rucool.marine.rutgers.edu', fontsize=10, loc='right')
+    axis.text(.81, -.12, 'rucool.marine.rutgers.edu', size=10, transform=axis.transAxes)
     axis.set_ylabel(ylabel, labelpad=10)
     axis.set_xlabel('Time (GMT)', labelpad=10)
     if ylims is not None:

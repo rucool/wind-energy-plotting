@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 5/18/2020
-Last Modified: 9/1/2020
+Last Modified: 9/2/2020
 Creates pcolor plots of wind speed for the most current 3 days of SODAR data.
 """
 
@@ -134,7 +134,7 @@ def main(args):
         plt.colorbar(h, ax=ax, label='Wind Speed (knots)', extend='max', pad=0.02)
 
         ax.set_title('Tuckerton SODAR Wind Speed')
-        ax.set_title('rucool.marine.rutgers.edu', fontsize=11, loc='right')
+        ax.text(.81, -.26, 'rucool.marine.rutgers.edu', size=12, transform=ax.transAxes)
         ax.set_ylabel('Height (m)')
         ax.set_xlabel('Time (GMT)')
 
