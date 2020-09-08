@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/6/2020
-Last modified: 8/17/2020
+Last modified: 9/8/2020
 Creates 4-panel hourly plots of cloud fraction from RU-WRF 4.1 at low, medium, high levels, and Total Cloud Fraction.
 The plots are used to populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -21,6 +21,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import functions.common as cf
+# import functions.plotting as pf
 
 
 def add_map_features_panel(ax, axes_limits, bottom_labs, left_labs):
@@ -120,12 +121,13 @@ def plot_pcolormesh_panel(fig, ax, ttl, lon_data, lat_data, var_data, var_min, v
         cb.ax.tick_params(labelsize=12)
 
 
-def plt_cloudfrac(nc, model, figname):
+def plt_cloudfrac(nc, model, figname, lease_areas):
     """
     Create a pcolor surface map of cloud cover
     :param nc: netcdf file
     :param model: the model version that is being plotted, e.g. 3km or 9km
     :param figname: full file path to save directory and save filename
+    :param lease_areas: dictionary containing lat/lon coordinates for wind energy lease area polygon
     """
     var = nc['cloudfrac']
     color_label = 'Cloud Cover (%)'
@@ -161,6 +163,7 @@ def plt_cloudfrac(nc, model, figname):
         ax4 = axs[1, 1]
         plot_pcolormesh_panel(fig, ax4, 'Total Cloud Fraction', lon, lat, d, 0, 100, 'gray', color_label, 'yes')
         add_map_features_panel(ax4, ax_lims, 'yes', 'no')
+        # pf.add_lease_area_polygon(ax4, lease_areas, 'magenta')
 
         # plot each level
         ax1 = axs[0, 0]
@@ -199,6 +202,7 @@ def plt_cloudfrac(nc, model, figname):
 
             plot_pcolormesh_panel(fig, axes_ind[i], title, lon, lat, d, 0, 100, 'gray', color_label, colorbar)
             add_map_features_panel(axes_ind[i], ax_lims, bottomlabel, leftlabel)
+            # pf.add_lease_area_polygon(axes_ind[i], lease_areas, 'magenta')
 
         plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.02, hspace=0.01)
         plt.savefig(save_fig, dpi=200)
@@ -262,6 +266,8 @@ def main(args):
     wrf_procdir = args.wrf_dir
     save_dir = args.save_dir
 
+    la_polygon = cf.extract_lease_areas()
+
     if wrf_procdir.endswith('/'):
         ext = '*.nc'
     else:
@@ -278,7 +284,7 @@ def main(args):
         splitter = fname.split('/')[-1].split('_')
         ncfile = xr.open_dataset(f, mask_and_scale=False)
         sfile = cf.save_filepath(save_dir, 'cloud', splitter)
-        plt_cloudfrac(ncfile, model_ver, sfile)
+        plt_cloudfrac(ncfile, model_ver, sfile, la_polygon)
 
     print('')
     print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))
