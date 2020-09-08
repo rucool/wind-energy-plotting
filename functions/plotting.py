@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/17/2020
-Last modified: 8/25/2020
+Last modified: 9/8/2020
 """
 
 import matplotlib as mpl
@@ -27,6 +27,20 @@ def add_contours(ax, londata, latdata, vardata, clist, label_format=None):
     else:
         lf = label_format
     ax.clabel(CS, inline=True, fontsize=10.5, fmt=lf)
+
+
+def add_lease_area_polygon(ax, lease_area_dict, line_color):
+    """
+    Adds polygon outline for wind energy lease areas to map
+    :param ax: plotting axis object
+    :param lease_area_dict: dictionary containing lat/lon coordinates for wind energy lease area polygon
+    :param line_color: polygon line color
+    """
+    for i, coord in enumerate(lease_area_dict['coords']):
+        if i > 0:
+            poly_lons = [lease_area_dict['coords'][i - 1][0], coord[0]]
+            poly_lats = [lease_area_dict['coords'][i - 1][1], coord[1]]
+            ax.plot(poly_lons, poly_lats, ls='-', lw=.4, color=line_color, transform=ccrs.PlateCarree())
 
 
 def plot_contourf(fig, ax, ttl, lon_data, lat_data, var_data, clevs, cmap, clab, var_min, var_max, normalize,

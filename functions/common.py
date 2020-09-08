@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/17/2020
-Last modified: 8/25/2020
+Last modified: 9/8/2020
 """
 
 import numpy as np
@@ -11,6 +11,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
+import xml.etree.ElementTree as ET  # for parsing kml files
 
 
 def add_map_features(ax, axes_limits, landcolor=None, ecolor=None):
@@ -87,6 +88,27 @@ def add_text(ax, run_date, time_coverage_start, model):
 
     insert_text2 = 'Valid {} ({}) | Forecast Hr {}'.format(valid_dt_gmt_str, valid_dt_edt_str, fcast_hour)
     ax.text(.275, -.13, insert_text2, size=10, transform=ax.transAxes)
+
+
+def extract_lease_areas():
+    """
+    Extracts polygon coordinates from a .kml file.
+    :returns dictionary containing lat/lon coordinates for wind energy lease area polygon
+    """
+    boem_lease_areas = '/home/coolgroup/bpu/mapdata/shapefiles/RU-WRF_Plotting_Shapefiles'  # !!!!! need filename
+    nmsp = '{http://www.opengis.net/kml/2.2}'
+    doc = ET.parse(boem_lease_areas)
+    findstr = '{0}MultiGeometry/{0}Polygon/{0}outerBoundaryIs/{0}LinearRing/{0}coordinates'.format(nmsp)
+
+    polygon_dict = dict(coords=[])
+    for pm in doc.iterfind('.//{0}Placemark'.format(nmsp)):
+        for ls in pm.iterfind(findstr):
+            coord_strlst = [x for x in ls.text.split(' ')]
+            for coords in coord_strlst:
+                splitter = coords.split(',')
+                polygon_dict['coords'].append([np.float(splitter[0]), np.float(splitter[1])])
+
+    return polygon_dict
 
 
 def save_filepath(save_dir, varname, sp):
