@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 5/28/2020
-Last modified: 8/26/2020
+Last modified: 9/9/2020
 Creates hourly plots of RU-WRF 4.1 output variables: wind speed at 10m, 80m and 160m. The plots are used to populate
 RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -22,13 +22,14 @@ import functions.plotting as pf
 plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise specified
 
 
-def plt_windsp(nc, model, ht, figname):
+def plt_windsp(nc, model, ht, figname, lease_areas):
     """
     Create pseudocolor surface maps of wind speed with quivers indicating wind direction.
     :param nc: netcdf file
     :param model: the model version that is being plotted, e.g. 3km or 9km
     :param ht: wind speed height to plot, e.g. 10m, 80m, 160m
     :param figname: full file path to save directory and save filename
+    :param lease_areas: dictionary containing lat/lon coordinates for wind energy lease area polygon
     """
     if ht == '10m':
         u = nc['U10']
@@ -64,6 +65,8 @@ def plt_windsp(nc, model, ht, figname):
         cf.add_text(ax, nc.SIMULATION_START_DATE, nc.time_coverage_start, model)
 
         cf.add_map_features(ax, ax_lims)
+
+        # pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
 
         # convert wind speeds from m/s to knots
         u_sub = np.squeeze(u_sub.values) * 1.94384
@@ -110,6 +113,8 @@ def main(args):
     wrf_procdir = args.wrf_dir
     save_dir = args.save_dir
 
+    la_polygon = cf.extract_lease_areas()
+
     if wrf_procdir.endswith('/'):
         ext = '*.nc'
     else:
@@ -131,11 +136,11 @@ def main(args):
         for pv in plt_vars:
             sfile = cf.save_filepath(save_dir, pv, splitter)
             if pv == 'ws10':
-                plt_windsp(ncfile, model_ver, '10m', sfile)
+                plt_windsp(ncfile, model_ver, '10m', sfile, la_polygon)
             elif pv == 'ws80':
-                plt_windsp(ncfile, model_ver, '80m', sfile)
+                plt_windsp(ncfile, model_ver, '80m', sfile, la_polygon)
             elif pv == 'ws160':
-                plt_windsp(ncfile, model_ver, '160m', sfile)
+                plt_windsp(ncfile, model_ver, '160m', sfile, la_polygon)
 
     print('')
     print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))

@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 5/28/2020
-Last modified: 8/17/2020
+Last modified: 9/9/2020
 Creates hourly plots of RU-WRF 4.1 output variables: air temperature at 2m. The plots are used to populate
 RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -21,12 +21,13 @@ import functions.plotting as pf
 plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise specified
 
 
-def plt_2m_temp(nc, model, figname):
+def plt_2m_temp(nc, model, figname, lease_areas):
     """
     Create a pcolor surface map of air temperature at 2m with contours
     :param nc: netcdf file
     :param model: the model version that is being plotted, e.g. 3km or 9km
     :param figname: full file path to save directory and save filename
+    :param lease_areas: dictionary containing lat/lon coordinates for wind energy lease area polygon
     """
     t2 = nc['T2']
     color_label = 'Air Temperature ($^\circ$F)'
@@ -46,6 +47,8 @@ def plt_2m_temp(nc, model, figname):
         cf.add_text(ax, nc.SIMULATION_START_DATE, nc.time_coverage_start, model)
 
         cf.add_map_features(ax, ax_lims)
+
+        # pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
 
         # convert K to F
         d = np.squeeze(t2_sub.values) * 9/5 - 459.67
@@ -72,6 +75,8 @@ def main(args):
     wrf_procdir = args.wrf_dir
     save_dir = args.save_dir
 
+    la_polygon = cf.extract_lease_areas()
+
     if wrf_procdir.endswith('/'):
         ext = '*.nc'
     else:
@@ -88,7 +93,7 @@ def main(args):
         splitter = fname.split('/')[-1].split('_')
         ncfile = xr.open_dataset(f, mask_and_scale=False)
         sfile = cf.save_filepath(save_dir, 'T2', splitter)
-        plt_2m_temp(ncfile, model_ver, sfile)
+        plt_2m_temp(ncfile, model_ver, sfile, la_polygon)
 
     print('')
     print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))
