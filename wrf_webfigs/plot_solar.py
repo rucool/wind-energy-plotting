@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/24/2020
-Last modified: 8/26/2020
+Last modified: 9/9/2020
 Creates hourly plots of RU-WRF 4.1 output variables: Total, Diffuse, and Direct Shortwave Flux. The plots are used to
 populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -21,12 +21,13 @@ import functions.plotting as pf
 plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise specified
 
 
-def plt_solar(nc, model, figname):
+def plt_solar(nc, model, figname, lease_areas):
     """
     Create pcolor surface maps of total, diffuse, and direct shortwave flux with contours
     :param nc: netcdf file
     :param model: the model version that is being plotted, e.g. 3km or 9km
     :param figname: full file path to save directory and save filename
+    :param lease_areas: dictionary containing lat/lon coordinates for wind energy lease area polygon
     """
     varname = figname.split('/')[-1].split('_')[0]
     color_label = r'Surface Downwelling Shortwave Flux (W $\rm m^{-2}$)'  # \rm removes the italics
@@ -59,16 +60,19 @@ def plt_solar(nc, model, figname):
         # add text to the bottom of the plot
         cf.add_text(ax, nc.SIMULATION_START_DATE, nc.time_coverage_start, model)
 
-        # for diffuse shortwave flux, make state and coastline edgecolor gray
-        # for total and direct, change the state and coastline edgecolor to gray if solar radiation is beneath
-        # a certain threshold
+        # for diffuse shortwave flux, make state and coastline edgecolor gray, and make wind energy lease area magenta
+        # for total and direct, change the state and coastline edgecolor to gray, and make wind energy lease area
+        # magenta if solar radiation is beneath a certain threshold
         if varname == 'diffuse':
             cf.add_map_features(ax, ax_lims, ecolor='#525252')
+            # pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
         else:
             if np.nanmean(solar_sub) < mingray:
                 cf.add_map_features(ax, ax_lims, ecolor='#525252')
+                # pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
             else:
                 cf.add_map_features(ax, ax_lims)
+                # pf.add_lease_area_polygon(ax, lease_areas, '#252525')  # #252525 is very close to black
 
         # add contour lines
         pf.add_contours(ax, lon, lat, solar_sub, contour_list)
@@ -84,6 +88,8 @@ def main(args):
     start_time = time.time()
     wrf_procdir = args.wrf_dir
     save_dir = args.save_dir
+
+    la_polygon = cf.extract_lease_areas()
 
     if wrf_procdir.endswith('/'):
         ext = '*.nc'
@@ -105,7 +111,7 @@ def main(args):
         ncfile = xr.open_dataset(f, mask_and_scale=False)
         for pv in plt_vars:
             sfile = cf.save_filepath(save_dir, pv, splitter)
-            plt_solar(ncfile, model_ver, sfile)
+            plt_solar(ncfile, model_ver, sfile, la_polygon)
 
     print('')
     print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))

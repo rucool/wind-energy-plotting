@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/17/2020
-Last modified: 8/25/2020
+Last modified: 9/9/2020
 Creates hourly plots of RU-WRF 4.1 output variables: hourly snowfall, and daily accumulated snowfall.
 The plots are used to populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -22,13 +22,14 @@ import functions.plotting as pf
 plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise specified
 
 
-def plt_snow(nc, model, figname, snowtype, ncprev=None):
+def plt_snow(nc, model, figname, snowtype, lease_areas, ncprev=None):
     """
     Create filled contour surface maps of hourly and accumulated snowfall
     :param nc: netcdf file
     :param model: the model version that is being plotted, e.g. 3km or 9km
     :param figname: full file path to save directory and save filename
     :param snowtype: plot type to make, e.g. 'acc' (accumulated) or 'hourly'
+    :param lease_areas: dictionary containing lat/lon coordinates for wind energy lease area polygon
     :param ncprev: optional, netcdf file from the previous model hour to calculate hourly snowfall
     """
     # SNOWNC = water equivalent of total accumulated snowfall
@@ -76,6 +77,8 @@ def plt_snow(nc, model, figname, snowtype, ncprev=None):
 
         cf.add_map_features(ax, ax_lims)
 
+        # pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
+
         snow_colors = [
             "#c6dbef",
             "#9ecae1",
@@ -111,6 +114,8 @@ def main(args):
     wrf_procdir = args.wrf_dir
     save_dir = args.save_dir
 
+    la_polygon = cf.extract_lease_areas()
+
     if wrf_procdir.endswith('/'):
         ext = '*.nc'
     else:
@@ -130,7 +135,7 @@ def main(args):
 
         # plot hourly and accumulated snowfall (each .nc file contains accumulated snowfall)
         # plot accumulated snowfall
-        plt_snow(ncfile, model_ver, sfile, 'acc')
+        plt_snow(ncfile, model_ver, sfile, 'acc', la_polygon)
 
         # plot hourly snowfall
         if i > 0:
@@ -138,7 +143,7 @@ def main(args):
             nc_prev = xr.open_dataset(fprev, mask_and_scale=False)
         else:
             nc_prev = None
-        plt_snow(ncfile, model_ver, sfile, 'hourly', nc_prev)
+        plt_snow(ncfile, model_ver, sfile, 'hourly', la_polygon, nc_prev)
 
     print('')
     print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))
