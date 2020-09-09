@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/21/2020
-Last modified: 8/24/2020
+Last modified: 9/9/2020
 Creates hourly plots of RU-WRF 4.1 output variables: radar composite reflectivity.
 The plots are used to populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -22,12 +22,13 @@ import functions.plotting as pf
 plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise specified
 
 
-def plt_radar(nc, model, figname):
+def plt_radar(nc, model, figname, lease_areas):
     """
     Create filled contour surface maps of radar reflectivity
     :param nc: netcdf file
     :param model: the model version that is being plotted, e.g. 3km or 9km
     :param figname: full file path to save directory and save filename
+    :param lease_areas: dictionary containing lat/lon coordinates for wind energy lease area polygon
     """
     # MDBZ = max radar reflectivity
     radar = nc['MDBZ']
@@ -47,6 +48,8 @@ def plt_radar(nc, model, figname):
         cf.add_text(ax, nc.SIMULATION_START_DATE, nc.time_coverage_start, model)
 
         cf.add_map_features(ax, ax_lims)
+
+        # pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
 
         title = 'Radar Composite Reflectivity ({})'.format(radar.units)
 
@@ -71,6 +74,8 @@ def main(args):
     wrf_procdir = args.wrf_dir
     save_dir = args.save_dir
 
+    la_polygon = cf.extract_lease_areas()
+
     if wrf_procdir.endswith('/'):
         ext = '*.nc'
     else:
@@ -87,7 +92,7 @@ def main(args):
         splitter = fname.split('/')[-1].split('_')
         ncfile = xr.open_dataset(f, mask_and_scale=False)
         sfile = cf.save_filepath(save_dir, 'radar', splitter)
-        plt_radar(ncfile, model_ver, sfile)
+        plt_radar(ncfile, model_ver, sfile, la_polygon)
 
     print('')
     print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))
