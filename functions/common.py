@@ -95,7 +95,7 @@ def extract_lease_areas():
     Extracts polygon coordinates from a .kml file.
     :returns dictionary containing lat/lon coordinates for wind energy lease area polygon
     """
-    boem_lease_areas = '/home/coolgroup/bpu/mapdata/shapefiles/RU-WRF_Plotting_Shapefiles'  # !!!!! need filename
+    boem_lease_areas = '/home/coolgroup/bpu/mapdata/shapefiles/RU-WRF_Plotting_Shapefiles/boem_lease_area_full.kml'
     nmsp = '{http://www.opengis.net/kml/2.2}'
     doc = ET.parse(boem_lease_areas)
     findstr = '{0}MultiGeometry/{0}Polygon/{0}outerBoundaryIs/{0}LinearRing/{0}coordinates'.format(nmsp)
