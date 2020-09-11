@@ -5,3 +5,4 @@ from . import plot_snow
 from . import plot_solar
 from . import plot_T2
 from . import plot_windspeed
+from . import plot_windgusts
