@@ -98,19 +98,34 @@ def extract_lease_areas():
     boem_lease_areas = '/home/coolgroup/bpu/mapdata/shapefiles/RU-WRF_Plotting_Shapefiles/boem_lease_areas_AS_OW_split.kml'
     nmsp = '{http://www.opengis.net/kml/2.2}'
     doc = ET.parse(boem_lease_areas)
-    findouter = '{0}MultiGeometry/{0}Polygon/{0}outerBoundaryIs/{0}LinearRing/{0}coordinates'.format(nmsp)
+    findouter = './/{0}outerBoundaryIs/{0}LinearRing/{0}coordinates'.format(nmsp)
+    findinner = './/{0}innerBoundaryIs/{0}LinearRing/{0}coordinates'.format(nmsp)
 
     polygon_dict = dict()
     for pm in doc.iterfind('.//{0}Placemark'.format(nmsp)):
         for nm in pm.iterfind('{0}name'.format(nmsp)):  # find the company name
             polygon_dict[nm.text] = dict(outer=[], inner=[])
-            for ls in pm.iterfind(findouter):
-                coord_strlst = [x for x in ls.text.split(' ')]
-                for coords in coord_strlst:
-                    splitter = coords.split(',')
-                    polygon_dict[nm.text]['outer'].append([np.float(splitter[0]), np.float(splitter[1])])
+            polygon_dict[nm.text]['outer'] = find_coords(pm, findouter)
+            polygon_dict[nm.text]['inner'] = find_coords(pm, findinner)
 
     return polygon_dict
+
+
+def find_coords(elem, findstr):
+    """
+    Finds coordinates in an .xml file and appends them in pairs to a list
+    :param elem: element of an .xml file
+    :param findstr: string to find in the element
+    :returns list of coordinates
+    """
+    coordlist = []
+    for ls in elem.iterfind(findstr):
+        coord_strlst = [x for x in ls.text.split(' ')]
+        for coords in coord_strlst:
+            splitter = coords.split(',')
+            coordlist.append([np.float(splitter[0]), np.float(splitter[1])])
+
+    return coordlist
 
 
 def save_filepath(save_dir, varname, sp):
