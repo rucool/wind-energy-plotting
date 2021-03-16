@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 2/18/2021
-Last Modified: 3/1/2021
+Last Modified: 3/15/2021
 Preliminary sea breeze identification using SODAR data at 100m. Data gaps cannot be >1 hour.
 """
 
@@ -21,7 +21,7 @@ def daterange(date1, date2):
 
 def main(stime, etime, sDir):
     sodar_dir = '/home/coolgroup/MetData/CMOMS/sodar/daily/'  # on server
-    #sodar_dir = '/Users/lgarzio/Documents/rucool/bpu/wrf/sodar_plotting/data2/'  # on local machine
+    #sodar_dir = '/Users/lgarzio/Documents/rucool/bpu/wrf/sodar_plotting/data3/'  # on local machine
 
     # find the file extensions for the date range of interest
     fext = []
@@ -90,7 +90,17 @@ def main(stime, etime, sDir):
                         else:  # replace second timestamp with this one
                             sb[-1] = row['DateEST']
                     else:
-                        sb = []
+                        # if the gap is >1 hour, check that the interval already identified is >= 4 hours
+                        delta = sb[-1] - sb[0]
+                        if delta >= dt.timedelta(hours=4):
+                            # calculate seabreeze duration in hours
+                            dur_hours = (delta.days * 24) + (delta.seconds / 3600)
+                            sb.append(round(dur_hours, 2))
+                            # append to master seabreeze list, then start over
+                            seabreezes.append(sb)
+                            sb = []  # then start over
+                        else:
+                            sb = []
                 else:
                     if len(sb) == 2:  # if there are 2 timestamps, check if the interval is >= 4 hours
                         delta = sb[-1] - sb[0]
@@ -115,7 +125,7 @@ def main(stime, etime, sDir):
 
 if __name__ == '__main__':
     start_time = dt.datetime(2015, 5, 13)  # first date: dt.datetime(2015, 5, 13)
-    end_time = dt.datetime(2021, 3, 1)
+    end_time = dt.datetime(2021, 3, 15)
     #save_dir = '/Users/lgarzio/Documents/rucool/bpu/wrf/seabreeze_id_sodar'  # on local machine
     save_dir = '/www/home/lgarzio/public_html'  # on server
     main(start_time, end_time, save_dir)
