@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 2/18/2021
-Last Modified: 3/15/2021
+Last Modified: 3/23/2021
 Preliminary sea breeze identification using SODAR data at 100m. Data gaps cannot be >1 hour.
 """
 
@@ -65,9 +65,6 @@ def main(stime, etime, sDir):
         df = df.reset_index()
         df['Date and Time'] = pd.to_datetime(df['Date and Time'])  # format time
         df.sort_values(by='Date and Time', inplace=True)  # make sure the dataframe is sorted by time
-
-        # find 4 consecutive hours when wind direction is between 95-195 degrees if the initial shift occurs between
-        # 10am and 4pm EST (timedelta = 5 hours)
         df['DateEST'] = df['Date and Time'] - dt.timedelta(hours=5)
 
         seabreezes = sb.seabreeze_id_df(df, 'DateEST', '{} Wind Direction'.format(wh), 'EST')
@@ -79,6 +76,6 @@ def main(stime, etime, sDir):
 if __name__ == '__main__':
     start_time = dt.datetime(2015, 5, 13)  # first date: dt.datetime(2015, 5, 13)
     end_time = dt.datetime(2021, 3, 15)
-    #save_dir = '/Users/lgarzio/Documents/rucool/bpu/wrf/seabreeze_id_sodar'  # on local machine
+    #save_dir = '/Users/lgarzio/Documents/rucool/bpu/wrf/seabreeze_id'  # on local machine
     save_dir = '/www/home/lgarzio/public_html'  # on server
     main(start_time, end_time, save_dir)

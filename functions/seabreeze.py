@@ -12,7 +12,8 @@ import datetime as dt
 
 def seabreeze_id_df(df, dt_colname, wd_colname, timezone):
     """
-    Identifies seabreezes from wind direction data stored as a dataframe
+    Identifies seabreezes from wind direction data stored as a dataframe. A seabreeze is identified as 4 consecutive
+    hours when wind direction is between 95-195 degrees starting between 10am and 4pm EST
     :param df: dataframe containing data
     :param dt_colname: column name for date
     :param wd_colname: column name for wind direction
