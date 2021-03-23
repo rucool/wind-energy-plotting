@@ -32,7 +32,6 @@ def main(stime, etime, plotting_interval, hts, sDir):
     sodar_dir = '/Users/lgarzio/Documents/rucool/bpu/wrf/sodar_plotting/data3/'  # on local machine
 
     # find the file extensions for the date range of interest
-    # find the file extensions for the date range of interest
     fext = []
     for tm in daterange(stime, etime):
         fext.append(tm.strftime('%Y%m%d'))
@@ -74,13 +73,13 @@ def main(stime, etime, plotting_interval, hts, sDir):
         df['DateEST'] = df['Date and Time'] - dt.timedelta(hours=5)
 
         # seabreeze file for the 100m algorithm
-        seabreeze_id100 = '/Users/lgarzio/Documents/rucool/bpu/wrf/seabreeze_id_sodar/seabreezes100m_20150513-20210315.csv'
+        seabreeze_id100 = '/Users/lgarzio/Documents/rucool/bpu/wrf/seabreeze_id/seabreezes100m_20150513-20210315.csv'
         sbid100 = pd.read_csv(seabreeze_id100)
         sbid100['start_timeEST'] = pd.to_datetime(sbid100.start_timeEST)
         sbid100['end_timeEST'] = pd.to_datetime(sbid100.end_timeEST)
 
         # seabreeze file for the 30m algorithm
-        seabreeze_id30 = '/Users/lgarzio/Documents/rucool/bpu/wrf/seabreeze_id_sodar/seabreezes30m_20150513-20210315.csv'
+        seabreeze_id30 = '/Users/lgarzio/Documents/rucool/bpu/wrf/seabreeze_id/seabreezes30m_20150513-20210315.csv'
         sbid30 = pd.read_csv(seabreeze_id30)
         sbid30['start_timeEST'] = pd.to_datetime(sbid30.start_timeEST)
         sbid30['end_timeEST'] = pd.to_datetime(sbid30.end_timeEST)
