@@ -30,7 +30,8 @@ def main(stime, etime, sDir):
 
     # combine data from files into one dataframe
     df = pd.DataFrame()
-    wind_height = ['100m']
+    #wind_height = ['100m']
+    wind_height = ['30m']
 
     for f in fext:
         file_df = pd.DataFrame()
@@ -73,13 +74,13 @@ def main(stime, etime, sDir):
         sb = []  # initial list to track each potential seabreeze
         for i, row in df.iterrows():
             t1 = row['DateEST']
-            winddir_test = 95 <= row['100m Wind Direction'] <= 195
+            winddir_test = 95 <= row['{} Wind Direction'.format(wh)] <= 195
             if len(sb) == 0:
                 # for the beginning of the seabreeze, check that the time is between 10am and and 4pm EST
                 if np.logical_and(10 <= t1.hour < 16, winddir_test):
                     sb.append(row['DateEST'])
             else:
-                if pd.isnull(row['100m Wind Direction']):  # keep going if wind direction is missing
+                if pd.isnull(row['{} Wind Direction'.format(wh)]):  # keep going if wind direction is missing
                     continue
                 if winddir_test:
                     # check that this timestamp is <=1 hour from the previous timestamp
@@ -119,7 +120,7 @@ def main(stime, etime, sDir):
         cols = ['start_timeEST', 'end_timeEST', 'duration_hours']
 
         sb_df = pd.DataFrame(seabreezes, columns=cols)
-        save_file = os.path.join(sDir, 'seabreezes_{}-{}.csv'.format(fext[0], fext[-1]))
+        save_file = os.path.join(sDir, 'seabreezes{}_{}-{}.csv'.format(wh, fext[0], fext[-1]))
         sb_df.to_csv(save_file, index=False)
 
 
