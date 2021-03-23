@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/17/2020
-Last modified: 9/8/2020
+Last modified: 9/14/2020
 """
 
 import numpy as np
@@ -95,6 +95,8 @@ def extract_lease_areas():
     Extracts polygon coordinates from a .kml file.
     :returns dictionary containing lat/lon coordinates for wind energy lease area polygons, separated by company
     """
+    #boem_lease_areas = '/Users/lgarzio/Documents/rucool/bpu/wrf/boem_lease_area_full.kml'  # on local machine
+    #boem_lease_areas = '/Users/lgarzio/Documents/rucool/bpu/wrf/boem_lease_areas_AS_OW_split.kml'  # on local machine
     boem_lease_areas = '/home/coolgroup/bpu/mapdata/shapefiles/RU-WRF_Plotting_Shapefiles/boem_lease_areas_AS_OW_split.kml'
     nmsp = '{http://www.opengis.net/kml/2.2}'
     doc = ET.parse(boem_lease_areas)
@@ -194,3 +196,17 @@ def subset_grid(data, model):
     data = np.squeeze(data)[range(np.min(ind[0]), np.max(ind[0]) + 1), range(np.min(ind[1]), np.max(ind[1]) + 1)]
 
     return data, axis_limits
+
+
+def wind_uv_to_dir(u, v):
+    """
+    Calculates the wind direction from the u and v component of wind.
+    Takes into account the wind direction coordinates is different than the
+    trig unit circle coordinate. If the wind direction is 360 then returns zero
+    (by %360)
+    Inputs:
+    u = west/east direction (wind from the west is positive, from the east is negative)
+    v = south/noth direction (wind from the south is positive, from the north is negative)
+    """
+    WDIR = (270-np.rad2deg(np.arctan2(v, u))) % 360
+    return WDIR
