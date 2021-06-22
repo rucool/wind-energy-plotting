@@ -61,6 +61,9 @@ def main(args):
 # def main():
     save_dir = args.save_dir
     met_dir = '/home/coolgroup/MetData/CMOMS/surface/daily'
+    # save_dir = '/www/cool/mrs/weather/cmoms_imagery'  # on server
+    # met_dir = '/Users/garzio/Documents/rucool/bpu/wrf/mettower_plotting/data'  # on local machine
+    # save_dir = '/Users/garzio/Documents/rucool/bpu/wrf/mettower_plotting'
     os.makedirs(save_dir, exist_ok=True)
 
     # find the most recent file
@@ -178,6 +181,7 @@ def main(args):
 
 
 if __name__ == '__main__':
+    # main()
     arg_parser = argparse.ArgumentParser(description='Plot wind speeds, air temperature, and sea level pressure',
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
