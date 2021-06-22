@@ -2,8 +2,8 @@
 
 """
 Author: Lori Garzio on 5/18/2020
-Last Modified: 9/2/2020
-Creates three wind barb plots: 1) current 3 days, 2) current 1 day, and 3) current 24 hours.
+Last Modified: 6/22/2020
+Creates three wind barb plots: 1) most recent 3 days, 2) most recent 1 day, and 3) most recent 24 hours.
 """
 
 import argparse
@@ -124,24 +124,28 @@ def main(args):
     os.makedirs(os.path.dirname(save_file3), exist_ok=True)
     os.makedirs(os.path.dirname(save_file24), exist_ok=True)
 
-    # define files for the 3 most recent days of data
-    today = dt.datetime.utcnow()
+    # find the most recent file
+    last_file = sorted(glob.glob(os.path.join(sodar_dir, '*.dat')))[-1]
+    last_file_day = dt.datetime.strptime(last_file.split('/')[-1].split('.')[-2], '%Y%m%d')
+
+    # define files for the 3 most recent available days of data
+    # today = dt.datetime.utcnow()
     days = [2, 1]
     fext = []
     for d in days:
-        fext.append((today - dt.timedelta(days=d)).strftime('%Y%m%d'))
-    fext.append(today.strftime('%Y%m%d'))
+        fext.append((last_file_day - dt.timedelta(days=d)).strftime('%Y%m%d'))
+    fext.append(last_file_day.strftime('%Y%m%d'))
 
-    # combine data from files for the most current 3 days into one dataframe
+    # combine data from files for the most recent 3 days into one dataframe
     df3day = pd.DataFrame()
     wind_height = ['30m', '40m', '50m', '60m', '80m', '100m', '120m', '140m', '160m', '180m', '200m']
 
     # check if there is a file for today, if not don't make a plot
-    try:
-        glob.glob(sodar_dir + '*sodar.' + today.strftime('%Y%m%d') + '.dat')[0]
-    except IndexError:
-        print('No SODAR file for today - skipping plot')
-        quit()
+    # try:
+    #     glob.glob(sodar_dir + '*sodar.' + today.strftime('%Y%m%d') + '.dat')[0]
+    # except IndexError:
+    #     print('No SODAR file for today - skipping plot')
+    #     quit()
 
     for f in fext:
         try:
@@ -174,14 +178,14 @@ def main(args):
         sub3 = define_barb_subset(df3day)
         plot_barbs(tm3, ht3, u3, v3, sub3, color_lims, '3-day', save_file3)
 
-        # get the data for the current day only, define the color limits, do not subset the barbs, and create a plot
-        df1day = df3day.loc[df3day['tm'] >= pd.to_datetime(today.strftime('%Y-%m-%d'))]
+        # get the data for the most recent day only, define the color limits, do not subset the barbs, and create a plot
+        df1day = df3day.loc[df3day['tm'] >= pd.to_datetime(last_file_day.strftime('%Y-%m-%d'))]
         tm1, ht1, u1, v1, wspd1 = format_data(df1day)
         sub1 = 1
         plot_barbs(tm1, ht1, u1, v1, sub1, color_lims, '1-day', save_file1)
 
-        # get the data for the current 24 hours only, define the color limits, do not subset the barbs, and create a plot
-        hrs24 = pd.to_datetime(today - dt.timedelta(hours=24)).strftime('%Y-%m-%d %H:%M:00')
+        # get the data for the most recent 24 hours only, define the color limits, do not subset the barbs, and create a plot
+        hrs24 = pd.to_datetime(tm3[-1] - dt.timedelta(hours=24)).strftime('%Y-%m-%d %H:%M:00')
         df24 = df3day.loc[df3day['tm'] >= hrs24]
         tm24, ht24, u24, v24, wspd24 = format_data(df24)
         sub24 = 1

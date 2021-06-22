@@ -2,8 +2,9 @@
 
 """
 Author: Lori Garzio on 9/1/2020
-Last Modified: 9/2/2020
-Creates timeseries plots of wind speed, air temperature, and sea level pressure from RUCOOL's meteorological tower.
+Last Modified: 6/22/2021
+Creates timeseries plots of wind speed, air temperature, and sea level pressure from RUCOOL's meteorological tower for
+the three most recent days of available data.
 These plots are used to populate RUCOOL's Coastal Metocean Monitoring Station webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/coastal-metocean-monitoring-station/
 """
@@ -57,27 +58,32 @@ def wind_uv_to_spd(u, v):
 
 
 def main(args):
+# def main():
     save_dir = args.save_dir
     met_dir = '/home/coolgroup/MetData/CMOMS/surface/daily'
     os.makedirs(save_dir, exist_ok=True)
 
-    # define files for the 3 most recent days of data
-    today = dt.datetime.utcnow()
+    # find the most recent file
+    last_file = sorted(glob.glob(os.path.join(met_dir, '*.dat')))[-1]
+    last_file_day = dt.datetime.strptime(last_file.split('/')[-1].split('.')[-2], '%Y%m%d')
+
+    # define files for the 3 most recent available days of data
+    # today = dt.datetime.utcnow()
     days = [2, 1]
     fext = []
     for d in days:
-        fext.append((today - dt.timedelta(days=d)).strftime('%Y%m%d'))
-    fext.append(today.strftime('%Y%m%d'))
+        fext.append((last_file_day - dt.timedelta(days=d)).strftime('%Y%m%d'))
+    fext.append(last_file_day.strftime('%Y%m%d'))
 
-    # combine data from files into one dataframe
+    # initialize empty dataframe to append data from all files
     df = pd.DataFrame()
 
-    # check if there is a file for today, if not don't make a plot
-    try:
-        glob.glob(met_dir + '/*surface.' + today.strftime('%Y%m%d') + '.dat')[0]
-    except IndexError:
-        print('No file for today - skipping plot')
-        quit()
+    # # check if there is a file for today, if not don't make a plot
+    # try:
+    #     glob.glob(met_dir + '/*surface.' + today.strftime('%Y%m%d') + '.dat')[0]
+    # except IndexError:
+    #     print('No file for today - skipping plot')
+    #     quit()
 
     for f in fext:
         try:
@@ -122,7 +128,7 @@ def main(args):
         y_limits = [0, 10]
         y_ticks = np.linspace(0, 10, 11)
 
-    format_plot(ax, today, title, ylab, legend='yes', ylims=y_limits, yticks=y_ticks)
+    format_plot(ax, last_file_day, title, ylab, legend='yes', ylims=y_limits, yticks=y_ticks)
 
     format_date_axis(ax)
 
@@ -144,7 +150,7 @@ def main(args):
     ymin = np.floor(np.nanmin([np.nanmin(temp2), np.nanmin(temp12)])) - 1
     ymax = np.ceil(np.nanmax([np.nanmax(temp2), np.nanmax(temp12)])) + 1
 
-    format_plot(ax, today, title, ylab, legend='yes', ylims=[ymin, ymax])
+    format_plot(ax, last_file_day, title, ylab, legend='yes', ylims=[ymin, ymax])
 
     format_date_axis(ax)
 
@@ -162,7 +168,7 @@ def main(args):
     ymin = np.floor(np.nanmin(pressure) - 1.5)
     ymax = np.ceil(np.nanmax(pressure) + 1.5)
 
-    format_plot(ax, today, title, ylab, legend='no', ylims=[ymin, ymax])
+    format_plot(ax, last_file_day, title, ylab, legend='no', ylims=[ymin, ymax])
 
     format_date_axis(ax)
 
