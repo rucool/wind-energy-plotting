@@ -90,6 +90,22 @@ def add_text(ax, run_date, time_coverage_start, model):
     ax.text(.275, -.13, insert_text2, size=10, transform=ax.transAxes)
 
 
+def define_axis_limits(model):
+    if model == '3km':
+        axis_limits = [-79.81, -69.18, 34.5, 43]
+        model_lims = dict(minlon=-79.9, maxlon=-69, minlat=34.5, maxlat=43)
+    elif model == '9km':
+        axis_limits = [-80, -67.9, 33.05, 44]
+        model_lims = dict(minlon=-80.05, maxlon=-67.9, minlat=33, maxlat=44.05)
+    elif model == 'bight':
+        axis_limits = [-77.5, -72, 37.5, 42.05]
+        model_lims = dict(minlon=-77.55, maxlon=-71.95, minlat=37.45, maxlat=42.05)
+    else:
+        print('Model not recognized')
+
+    return axis_limits, model_lims
+
+
 def extract_lease_areas():
     """
     Extracts polygon coordinates from a .kml file.
@@ -171,17 +187,7 @@ def subset_grid(data, model):
     :returns data: data subset to the desired grid region
     :returns axis_limits: axis limits to be used in the plotting function
     """
-    if model == '3km':
-        axis_limits = [-79.81, -69.18, 34.5, 43]
-        model_lims = dict(minlon=-79.9, maxlon=-69, minlat=34.5, maxlat=43)
-    elif model == '9km':
-        axis_limits = [-80, -67.9, 33.05, 44]
-        model_lims = dict(minlon=-80.05, maxlon=-67.9, minlat=33, maxlat=44.05)
-    elif model == 'bight':
-        axis_limits = [-77.5, -72, 37.5, 42.05]
-        model_lims = dict(minlon=-77.55, maxlon=-71.95, minlat=37.45, maxlat=42.05)
-    else:
-        print('Model not recognized')
+    axis_limits, model_lims = define_axis_limits(model)
 
     mlon = data['XLONG']
     mlat = data['XLAT']
