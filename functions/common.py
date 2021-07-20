@@ -9,19 +9,27 @@ import numpy as np
 import os
 import datetime as dt
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import xml.etree.ElementTree as ET  # for parsing kml files
 
 
-def add_map_features(ax, axes_limits, landcolor=None, ecolor=None):
+def add_map_features(ax, axes_limits, landcolor=None, ecolor=None, xticks=None, yticks=None):
     """
     Adds latitude and longitude gridlines and labels, coastlines, and statelines to a cartopy map object
     :param ax: plotting axis object
     :param axes_limits: list of axis limits [min lon, max lon, min lat, max lat]
     :param landcolor: optional, specify land color
     :param ecolor: optional, specify edge color, default is black
+    :param xticks: optional, specify x-ticks
+    :param yticks: optional, specify y-ticks
     """
+    landcolor = landcolor or 'none'
+    ecolor = ecolor or 'black'
+    xticks = xticks or None
+    yticks = yticks or None
+
     gl = ax.gridlines(draw_labels=True, linewidth=1, color='gray', alpha=0.5, linestyle='dotted', x_inline=False)
     gl.top_labels = False
     gl.right_labels = False
@@ -35,19 +43,16 @@ def add_map_features(ax, axes_limits, landcolor=None, ecolor=None):
     # set axis limits
     ax.set_extent(axes_limits)
 
+    # set optional x and y ticks
+    if xticks:
+        gl.xlocator = mticker.FixedLocator(xticks)
+
+    if yticks:
+        gl.ylocator = mticker.FixedLocator(yticks)
+
     land = cfeature.NaturalEarthFeature('physical', 'land', '10m')
 
-    if landcolor is not None:
-        lc = landcolor
-    else:
-        lc = 'none'
-
-    if ecolor is not None:
-        ec = ecolor
-    else:
-        ec = 'black'
-
-    ax.add_feature(land, zorder=5, edgecolor=ec, facecolor=lc)
+    ax.add_feature(land, zorder=5, edgecolor=ecolor, facecolor=landcolor)
 
     state_lines = cfeature.NaturalEarthFeature(
         category='cultural',
@@ -55,8 +60,8 @@ def add_map_features(ax, axes_limits, landcolor=None, ecolor=None):
         scale='10m',
         facecolor='none')
 
-    ax.add_feature(cfeature.BORDERS, zorder=6, edgecolor=ec)
-    ax.add_feature(state_lines, zorder=7, edgecolor=ec)
+    ax.add_feature(cfeature.BORDERS, zorder=6, edgecolor=ecolor)
+    ax.add_feature(state_lines, zorder=7, edgecolor=ecolor)
 
 
 def add_text(ax, run_date, time_coverage_start, model):
@@ -93,17 +98,43 @@ def add_text(ax, run_date, time_coverage_start, model):
 def define_axis_limits(model):
     if model == '3km':
         axis_limits = [-79.81, -69.18, 34.5, 43]
-        model_lims = dict(minlon=-79.9, maxlon=-69, minlat=34.5, maxlat=43)
+        data_sub = dict(minlon=-79.9, maxlon=-69, minlat=34.5, maxlat=43)
+        xticks = None
+        yticks = None
     elif model == '9km':
         axis_limits = [-80, -67.9, 33.05, 44]
-        model_lims = dict(minlon=-80.05, maxlon=-67.9, minlat=33, maxlat=44.05)
+        data_sub = dict(minlon=-80.05, maxlon=-67.9, minlat=33, maxlat=44.05)
+        xticks = None
+        yticks = None
     elif model == 'bight':
         axis_limits = [-77.5, -72, 37.5, 42.05]
-        model_lims = dict(minlon=-77.55, maxlon=-71.95, minlat=37.45, maxlat=42.05)
+        data_sub = dict(minlon=-77.75, maxlon=-71.75, minlat=37.25, maxlat=42.25)
+        xticks = None
+        yticks = None
+    elif model == 'full_grid':
+        axis_limits = [-79.79, -69.2, 34.5, 43]
+        data_sub = dict(minlon=-80, maxlon=-69, minlat=34.25, maxlat=43.25)
+        xticks = [-78, -76, -74, -72, -70]
+        yticks = [36, 38, 40, 42]
+    elif model == 'mab':
+        axis_limits = [-77.2, -69.6, 36, 41.8]
+        data_sub = dict(minlon=-77.5, maxlon=-69.25, minlat=35.5, maxlat=42)
+        xticks = [-75, -73, -71]
+        yticks = [37, 39, 41]
+    elif model == 'nj':
+        axis_limits = [-75.7, -71.5, 38.1, 41.2]
+        data_sub = dict(minlon=-75.9, maxlon=-71.25, minlat=37.9, maxlat=41.5)
+        xticks = [-75, -74, -73, -72]
+        yticks = [39, 40, 41]
+    elif model == 'snj':
+        axis_limits = [-75.6, -73, 38.6, 40.5]
+        data_sub = dict(minlon=-75.8, maxlon=-73.25, minlat=38.25, maxlat=40.25)
+        xticks = [-75, -74.5, -74, -73.5]
+        yticks = [39, 39.5, 40]
     else:
         print('Model not recognized')
 
-    return axis_limits, model_lims
+    return axis_limits, data_sub, xticks, yticks
 
 
 def extract_lease_areas():
@@ -173,8 +204,12 @@ def set_map(data):
     lccproj = ccrs.LambertConformal(central_longitude=-74.5, central_latitude=38.8)
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(projection=lccproj))
 
-    dlat = data['XLAT'].values
-    dlon = data['XLONG'].values
+    try:
+        dlat = data['XLAT'].values
+        dlon = data['XLONG'].values
+    except KeyError:
+        dlat = data['lat'].values
+        dlon = data['lon'].values
 
     return fig, ax, dlat, dlon
 
@@ -187,7 +222,7 @@ def subset_grid(data, model):
     :returns data: data subset to the desired grid region
     :returns axis_limits: axis limits to be used in the plotting function
     """
-    axis_limits, model_lims = define_axis_limits(model)
+    axis_limits, model_lims, _, _ = define_axis_limits(model)
 
     mlon = data['XLONG']
     mlat = data['XLAT']
@@ -202,6 +237,32 @@ def subset_grid(data, model):
     data = np.squeeze(data)[range(np.min(ind[0]), np.max(ind[0]) + 1), range(np.min(ind[1]), np.max(ind[1]) + 1)]
 
     return data, axis_limits
+
+
+def subset_grid_wct(data, model):
+    """
+    Subset the data according to defined latitudes and longitudes, and define the axis limits for the plots
+    :param data: data from the netcdf file to be plotted, including latitude and longitude coordinates
+    :param model: the model version that is being plotted, e.g. 3km, 9km, or bight (to plot just NY Bight region)
+    :returns data: data subset to the desired grid region
+    :returns axis_limits: axis limits to be used in the plotting function
+    """
+    axis_limits, model_lims, xticks, yticks = define_axis_limits(model)
+
+    mlon = data['lon']
+    mlat = data['lat']
+    mlon, mlat = np.meshgrid(mlon, mlat)
+    lon_ind = np.logical_and(mlon > model_lims['minlon'], mlon < model_lims['maxlon'])
+    lat_ind = np.logical_and(mlat > model_lims['minlat'], mlat < model_lims['maxlat'])
+
+    # find i and j indices of lon/lat in boundaries
+    ind = np.where(np.logical_and(lon_ind, lat_ind))
+
+    # subset data from min i,j corner to max i,j corner
+    # there will be some points outside of defined boundaries because grid is not rectangular
+    data = np.squeeze(data)[range(np.min(ind[0]), np.max(ind[0]) + 1), range(np.min(ind[1]), np.max(ind[1]) + 1)]
+
+    return data, axis_limits, xticks, yticks
 
 
 def wind_uv_to_dir(u, v):
