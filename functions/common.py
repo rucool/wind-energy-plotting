@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/17/2020
-Last modified: 9/14/2020
+Last modified: 7/26/2021
 """
 
 import numpy as np
@@ -15,7 +15,8 @@ import cartopy.feature as cfeature
 import xml.etree.ElementTree as ET  # for parsing kml files
 
 
-def add_map_features(ax, axes_limits, landcolor=None, ecolor=None, xticks=None, yticks=None):
+def add_map_features(ax, axes_limits, landcolor=None, ecolor=None, xticks=None, yticks=None, bottom_labs=None,
+                     left_labs=None):
     """
     Adds latitude and longitude gridlines and labels, coastlines, and statelines to a cartopy map object
     :param ax: plotting axis object
@@ -24,15 +25,23 @@ def add_map_features(ax, axes_limits, landcolor=None, ecolor=None, xticks=None, 
     :param ecolor: optional, specify edge color, default is black
     :param xticks: optional, specify x-ticks
     :param yticks: optional, specify y-ticks
+    :param bottom_labs = optional removal of bottom tick labels
+    :param left_labs = optional removal of left tick labels
     """
     landcolor = landcolor or 'none'
     ecolor = ecolor or 'black'
     xticks = xticks or None
     yticks = yticks or None
+    bottom_labs = bottom_labs or None
+    left_labs = left_labs or None
 
     gl = ax.gridlines(draw_labels=True, linewidth=1, color='gray', alpha=0.5, linestyle='dotted', x_inline=False)
     gl.top_labels = False
     gl.right_labels = False
+    if bottom_labs == 'remove':
+        gl.bottom_labels = False
+    if left_labs == 'remove':
+        gl.left_labels = False
     gl.xlabel_style = {'size': 13}
     gl.ylabel_style = {'size': 13}
 
@@ -64,14 +73,17 @@ def add_map_features(ax, axes_limits, landcolor=None, ecolor=None, xticks=None, 
     ax.add_feature(state_lines, zorder=7, edgecolor=ecolor)
 
 
-def add_text(ax, run_date, time_coverage_start, model):
+def add_text(ax, run_date, time_coverage_start, model, add_y=None):
     """
     Adds text regarding model run information to the bottom of a plot
     :param ax: plotting axis object
     :param run_date: date string that the model run was initialized from the .nc file, format '%Y-%m-%d_%H:%M:%S'
     :param time_coverage_start: date string of the data being plotted from the .nc file, format '%Y%m%dT%H%M%SZ'
     :param model: the model version that is being plotted, e.g. 3km or 9km
+    :param add_y: optional extra space to add on the y-axis
     """
+    add_y = add_y or None
+
     # format dates
     init_dt = dt.datetime.strptime(run_date, '%Y-%m-%d_%H:%M:%S')
     init_dt_str = '00Z{}'.format(dt.datetime.strftime(init_dt, '%d%b%Y'))
@@ -88,24 +100,35 @@ def add_text(ax, run_date, time_coverage_start, model):
     valid_dt_edt_str = '{} {} {:02d}:00EDT'.format(wkday, dt.datetime.strftime(valid_dt_edt, '%d%b%Y'),
                                                    valid_dt_edt.hour)
 
+    y1 = -.08
+    y2 = -.12
+    y3 = -.16
+
+    if add_y:
+        y1 = y1 - add_y
+        y2 = y2 - add_y - .03
+        y3 = y3 - add_y - .06
+
     insert_text1 = 'RU-WRF (v4.1) {} Model: Initialized {}'.format(model, init_dt_str)
-    ax.text(.41, -.09, insert_text1, size=10, transform=ax.transAxes)
+    ax.text(1, y1, insert_text1, size=10, transform=ax.transAxes, horizontalalignment='right')
 
     insert_text2 = 'Valid {} ({}) | Forecast Hr {}'.format(valid_dt_gmt_str, valid_dt_edt_str, fcast_hour)
-    ax.text(.275, -.13, insert_text2, size=10, transform=ax.transAxes)
+    ax.text(1, y2, insert_text2, size=10, transform=ax.transAxes, horizontalalignment='right')
+
+    ax.text(1, y3, 'rucool.marine.rutgers.edu', size=10, transform=ax.transAxes, horizontalalignment='right')
 
 
 def define_axis_limits(model):
     if model == '3km':
         axis_limits = [-79.81, -69.18, 34.5, 43]
         data_sub = dict(minlon=-79.9, maxlon=-69, minlat=34.5, maxlat=43)
-        xticks = None
-        yticks = None
+        xticks = [-78, -76, -74, -72, -70]
+        yticks = [36, 38, 40, 42]
     elif model == '9km':
         axis_limits = [-80, -67.9, 33.05, 44]
         data_sub = dict(minlon=-80.05, maxlon=-67.9, minlat=33, maxlat=44.05)
-        xticks = None
-        yticks = None
+        xticks = [-80, -78, -76, -74, -72, -70, -68]
+        yticks = [34, 36, 38, 40, 42]
     elif model == 'bight':
         axis_limits = [-77.5, -72, 37.5, 42.05]
         data_sub = dict(minlon=-77.75, maxlon=-71.75, minlat=37.25, maxlat=42.25)
@@ -142,8 +165,8 @@ def extract_lease_areas():
     Extracts polygon coordinates from a .kml file.
     :returns dictionary containing lat/lon coordinates for wind energy lease area polygons, separated by company
     """
-    #boem_lease_areas = '/Users/lgarzio/Documents/rucool/bpu/wrf/boem_lease_area_full.kml'  # on local machine
-    #boem_lease_areas = '/Users/lgarzio/Documents/rucool/bpu/wrf/boem_lease_areas_AS_OW_split.kml'  # on local machine
+    #boem_lease_areas = '/Users/garzio/Documents/rucool/bpu/wrf/lease_areas/boem_lease_area_full.kml'  # on local machine
+    #boem_lease_areas = '/Users/garzio/Documents/rucool/bpu/wrf/lease_areas/boem_lease_areas_AS_OW_split.kml'  # on local machine
     boem_lease_areas = '/home/coolgroup/bpu/mapdata/shapefiles/RU-WRF_Plotting_Shapefiles/boem_lease_areas_AS_OW_split.kml'
     nmsp = '{http://www.opengis.net/kml/2.2}'
     doc = ET.parse(boem_lease_areas)
@@ -203,6 +226,7 @@ def set_map(data):
     """
     lccproj = ccrs.LambertConformal(central_longitude=-74.5, central_latitude=38.8)
     fig, ax = plt.subplots(figsize=(8, 8), subplot_kw=dict(projection=lccproj))
+    plt.subplots_adjust(bottom=0.1, top=0.95)
 
     try:
         dlat = data['XLAT'].values
@@ -222,7 +246,7 @@ def subset_grid(data, model):
     :returns data: data subset to the desired grid region
     :returns axis_limits: axis limits to be used in the plotting function
     """
-    axis_limits, model_lims, _, _ = define_axis_limits(model)
+    axis_limits, model_lims, xticks, yticks = define_axis_limits(model)
 
     mlon = data['XLONG']
     mlat = data['XLAT']
@@ -236,7 +260,7 @@ def subset_grid(data, model):
     # there will be some points outside of defined boundaries because grid is not rectangular
     data = np.squeeze(data)[range(np.min(ind[0]), np.max(ind[0]) + 1), range(np.min(ind[1]), np.max(ind[1]) + 1)]
 
-    return data, axis_limits
+    return data, axis_limits, xticks, yticks
 
 
 def subset_grid_wct(data, model):
@@ -275,5 +299,17 @@ def wind_uv_to_dir(u, v):
     u = west/east direction (wind from the west is positive, from the east is negative)
     v = south/noth direction (wind from the south is positive, from the north is negative)
     """
-    WDIR = (270-np.rad2deg(np.arctan2(v, u))) % 360
-    return WDIR
+    wdir = (270-np.rad2deg(np.arctan2(v, u))) % 360
+    return wdir
+
+
+def wind_uv_to_spd(u, v):
+    """
+    Calculates the wind speed from the u and v wind components
+    :param u: west/east direction (wind from the west is positive, from the east is negative)
+    :param v: south/noth direction (wind from the south is positive, from the north is negative)
+    :returns wspd: wind speed calculated from the u and v wind components
+    """
+    wspd = np.sqrt(np.square(u) + np.square(v))
+
+    return wspd

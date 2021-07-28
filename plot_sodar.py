@@ -4,6 +4,7 @@
 Author: Lori Garzio on 5/18/2020
 Last Modified: 6/22/2020
 Creates three wind barb plots: 1) most recent 3 days, 2) most recent 1 day, and 3) most recent 24 hours.
+Circles indicate wind speeds <5 knots
 """
 
 import argparse

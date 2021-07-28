@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 5/28/2020
-Last modified: 9/9/2020
+Last modified: 7/28/2021
 Creates hourly plots of RU-WRF 4.1 output variables: hourly rainfall + sea level pressure, and daily accumulated
 rainfall. The plots are used to populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -22,16 +22,19 @@ import functions.plotting as pf
 plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise specified
 
 
-def plt_rain(nc, model, figname, raintype, lease_areas, ncprev=None):
+def plt_rain(nc, model, figname, raintype, lease_areas=None, ncprev=None):
     """
     Create filled contour surface maps of hourly and accumulated rain
     :param nc: netcdf file
     :param model: the model version that is being plotted, e.g. 3km or 9km
     :param figname: full file path to save directory and save filename
     :param raintype: plot type to make, e.g. 'acc' (accumulated) or 'hourly'
-    :param lease_areas: dictionary containing lat/lon coordinates for wind energy lease area polygon
+    :param lease_areas: optional, dictionary containing lat/lon coordinates for wind energy lease area polygon
     :param ncprev: optional, netcdf file from the previous model hour to calculate hourly rainfall
     """
+    lease_areas = lease_areas or None
+    ncprev = ncprev or None
+
     # RAINNC = total accumulated rainfall
     rn = nc['RAINNC']
     plot_types = ['full_grid', 'bight']
@@ -48,7 +51,7 @@ def plt_rain(nc, model, figname, raintype, lease_areas, ncprev=None):
         slp = nc['SLP']
         # calculate hourly rainfall for every model hour by subtracting the rainfall for the previous hour from
         # the rainfall for the current hour
-        if ncprev is not None:
+        if ncprev:
             preciprev = ncprev['RAINNC']
             rn = np.subtract(np.squeeze(rn), np.squeeze(preciprev))
         else:
@@ -56,24 +59,29 @@ def plt_rain(nc, model, figname, raintype, lease_areas, ncprev=None):
 
     for pt in plot_types:
         if pt == 'full_grid':  # subset the entire grid
-            if slp is not None:
-                slp_sub, __ = cf.subset_grid(slp, model)
-            rn_sub, ax_lims = cf.subset_grid(rn, model)
+            if isinstance(slp, xr.DataArray):
+                slp_sub, _, _, _ = cf.subset_grid(slp, model)
+            rn_sub, ax_lims, xticks, yticks = cf.subset_grid(rn, model)
         else:  # subset just NY Bight
             new_fname = 'bight_{}'.format(figname.split('/')[-1])
             figname = '/{}/{}'.format(os.path.join(*figname.split('/')[0:-1]), new_fname)
-            if slp is not None:
-                slp_sub, __ = cf.subset_grid(slp, 'bight')
-            rn_sub, ax_lims = cf.subset_grid(rn, 'bight')
+            if isinstance(slp, xr.DataArray):
+                slp_sub, _, _, _ = cf.subset_grid(slp, 'bight')
+            rn_sub, ax_lims, xticks, yticks = cf.subset_grid(rn, 'bight')
 
         fig, ax, lat, lon = cf.set_map(rn_sub)
 
         # add text to the bottom of the plot
         cf.add_text(ax, nc.SIMULATION_START_DATE, nc.time_coverage_start, model)
 
-        cf.add_map_features(ax, ax_lims)
+        # initialize keyword arguments for map features
+        kwargs = dict()
+        kwargs['xticks'] = xticks
+        kwargs['yticks'] = yticks
+        cf.add_map_features(ax, ax_lims, **kwargs)
 
-        # pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
+        if lease_areas:
+            pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
 
         # convert mm to inches
         rn_sub = rn_sub * 0.0394
@@ -101,12 +109,18 @@ def plt_rain(nc, model, figname, raintype, lease_areas, ncprev=None):
         # specify colorbar level demarcations
         levels = [0.01, 0.1, 0.25, 0.50, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10., 12.]
 
+        kwargs = dict()
+        kwargs['ttl'] = title
+        kwargs['cmap'] = precip_colormap
+        kwargs['clab'] = color_label
+        kwargs['normalize'] = 'yes'
+        kwargs['extend'] = 'max'
+
         # plot data
-        pf.plot_contourf(fig, ax, title, lon, lat, rn_sub, levels, precip_colormap, color_label, var_min=None,
-                         var_max=None, normalize='yes')
+        pf.plot_contourf(fig, ax, lon, lat, rn_sub, levels, **kwargs)
 
         # add slp as contours if provided
-        if slp is not None:
+        if isinstance(slp, xr.DataArray):
             contour_list = [940, 944, 948, 952, 956, 960, 964, 968, 972, 976, 980, 984, 988, 992, 996, 1000, 1004, 1008,
                             1012, 1016, 1020, 1024, 1028, 1032, 1036, 1040]
             pf.add_contours(ax, lon, lat, slp_sub, contour_list)
@@ -120,8 +134,6 @@ def main(args):
     wrf_procdir = args.wrf_dir
     save_dir = args.save_dir
 
-    la_polygon = cf.extract_lease_areas()
-
     if wrf_procdir.endswith('/'):
         ext = '*.nc'
     else:
@@ -133,6 +145,9 @@ def main(args):
     model_ver = f0.split('/')[-1].split('_')[1]  # 3km or 9km
     os.makedirs(save_dir, exist_ok=True)
 
+    kwargs = dict()
+    #kwargs['lease_areas'] = cf.extract_lease_areas()
+
     for i, f in enumerate(files):
         fname = f.split('/')[-1].split('.')[0]
         splitter = fname.split('/')[-1].split('_')
@@ -141,7 +156,7 @@ def main(args):
 
         # plot hourly and accumulated rainfall (each .nc file contains accumulated precipitation)
         # plot accumulated rainfall
-        plt_rain(ncfile, model_ver, sfile, 'acc', la_polygon)
+        plt_rain(ncfile, model_ver, sfile, 'acc', **kwargs)
 
         # plot hourly rainfall
         if i > 0:
@@ -149,7 +164,8 @@ def main(args):
             nc_prev = xr.open_dataset(fprev, mask_and_scale=False)
         else:
             nc_prev = None
-        plt_rain(ncfile, model_ver, sfile, 'hourly', la_polygon, nc_prev)
+        kwargs['ncprev'] = nc_prev
+        plt_rain(ncfile, model_ver, sfile, 'hourly', **kwargs)
 
     print('')
     print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))

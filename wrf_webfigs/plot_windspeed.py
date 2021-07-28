@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 5/28/2020
-Last modified: 9/9/2020
+Last modified: 7/28/2021
 Creates hourly plots of RU-WRF 4.1 output variables: wind speed at 10m, 80m and 160m. The plots are used to populate
 RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -16,21 +16,25 @@ import sys
 import time
 import xarray as xr
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+from matplotlib.colors import BoundaryNorm
 import cartopy.crs as ccrs
 import functions.common as cf
 import functions.plotting as pf
 plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise specified
 
 
-def plt_windsp(nc, model, ht, figname, lease_areas):
+def plt_windsp(nc, model, ht, figname, lease_areas=None):
     """
     Create pseudocolor surface maps of wind speed with quivers indicating wind direction.
     :param nc: netcdf file
     :param model: the model version that is being plotted, e.g. 3km or 9km
     :param ht: wind speed height to plot, e.g. 10m, 80m, 160m
     :param figname: full file path to save directory and save filename
-    :param lease_areas: dictionary containing lat/lon coordinates for wind energy lease area polygon
+    :param lease_areas: optional dictionary containing lat/lon coordinates for wind energy lease area polygon
     """
+    lease_areas = lease_areas or None
+
     if ht == '10m':
         u = nc['U10']
         v = nc['V10']
@@ -49,14 +53,14 @@ def plt_windsp(nc, model, ht, figname, lease_areas):
     plot_types = ['full_grid', 'bight']
     for pt in plot_types:
         if pt == 'full_grid':  # subset the entire grid
-            u_sub, __ = cf.subset_grid(u, model)
-            v_sub, ax_lims = cf.subset_grid(v, model)
+            u_sub, _, _, _ = cf.subset_grid(u, model)
+            v_sub, ax_lims, xticks, yticks = cf.subset_grid(v, model)
             qs = quiver_subset['_{}'.format(model)]['_{}'.format(ht)]
         else:  # subset just NY Bight
             new_fname = 'bight_{}'.format(figname.split('/')[-1])
             figname = '/{}/{}'.format(os.path.join(*figname.split('/')[0:-1]), new_fname)
-            u_sub, __ = cf.subset_grid(u, 'bight')
-            v_sub, ax_lims = cf.subset_grid(v, 'bight')
+            u_sub, _, _, _ = cf.subset_grid(u, 'bight')
+            v_sub, ax_lims, xticks, yticks = cf.subset_grid(v, 'bight')
             qs = quiver_subset['bight_{}'.format(model)]['_{}'.format(ht)]
 
         fig, ax, lat, lon = cf.set_map(u_sub)
@@ -64,16 +68,30 @@ def plt_windsp(nc, model, ht, figname, lease_areas):
         # add text to the bottom of the plot
         cf.add_text(ax, nc.SIMULATION_START_DATE, nc.time_coverage_start, model)
 
-        cf.add_map_features(ax, ax_lims)
+        # initialize keyword arguments for map features
+        kwargs = dict()
+        kwargs['xticks'] = xticks
+        kwargs['yticks'] = yticks
+        cf.add_map_features(ax, ax_lims, **kwargs)
 
-        # pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
+        if lease_areas:
+            pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
 
         # convert wind speeds from m/s to knots
         u_sub = np.squeeze(u_sub.values) * 1.94384
         v_sub = np.squeeze(v_sub.values) * 1.94384
 
+        # standardize the vectors so they only represent direction
+        u_sub_standardize = u_sub / cf.wind_uv_to_spd(u_sub, v_sub)
+        v_sub_standardize = v_sub / cf.wind_uv_to_spd(u_sub, v_sub)
+
         # calculate wind speed from u and v
-        speed = wind_uv_to_spd(u_sub, v_sub)
+        speed = cf.wind_uv_to_spd(u_sub, v_sub)
+
+        # mask vectors if wind speed is < 5
+        mask = speed < 5
+        u_sub_standardize[mask] = np.nan
+        v_sub_standardize[mask] = np.nan
 
         # add contours
         contour_list = [22, 34, 48, 64]
@@ -81,39 +99,52 @@ def plt_windsp(nc, model, ht, figname, lease_areas):
 
         # plot data
         # pcolormesh: coarser resolution, shows the actual resolution of the model data
-        pf.plot_pcolormesh(fig, ax, '{} {}'.format(ht, color_label), lon, lat, speed, 0, 40, 'BuPu', color_label)
+        cmap = plt.get_cmap('BuPu')
+        vlims = [0, 40]
+        levels = MaxNLocator(nbins=20).tick_values(vlims[0], vlims[1])  # every 2 knots
+        norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
+        # if ht == '10m':
+        #     vlims = [0, 40]
+        #     levels = MaxNLocator(nbins=20).tick_values(vlims[0], vlims[1])  # every 2 knots
+        # else:
+        #     vlims = [0, 60]
+        #     levels = MaxNLocator(nbins=30).tick_values(vlims[0], vlims[1])  # every 2 knots
 
-        # contourf: smooths the resolution of the model data, plots are less pixelated
+        kwargs = dict()
+        kwargs['ttl'] = '{} {}'.format(ht, color_label)
+        kwargs['cmap'] = cmap
+        kwargs['clab'] = color_label
+        #kwargs['var_lims'] = vlims
+        kwargs['norm_clevs'] = norm
+        kwargs['extend'] = 'max'
+        pf.plot_pcolormesh(fig, ax, lon, lat, speed, **kwargs)
+
+        # # contourf: smooths the resolution of the model data, plots are less pixelated
+        # kwargs = dict()
+        # kwargs['ttl'] = '{} {}'.format(ht, color_label)
+        # kwargs['cmap'] = cmap
+        # kwargs['clab'] = color_label
+        # kwargs['var_lims'] = [0, 40]
+        # kwargs['cbar_ticks'] = np.linspace(0, 40, 9)
+        #
         # levels = np.arange(0, 40.1, .1)
-        # pf.plot_contourf(fig, ax, color_label, lon, lat, speed, levels, 'BuPu', color_label, var_min=0, var_max=40,
-        #                  normalize='no', cbar_ticks=np.linspace(0, 40, 9))
+        # pf.plot_contourf(fig, ax, lon, lat, speed, levels, **kwargs)
 
         # subset the quivers and add as a layer
-        ax.quiver(lon[::qs, ::qs], lat[::qs, ::qs], u_sub[::qs, ::qs], v_sub[::qs, ::qs], scale=1000,
-                  width=.002, headlength=4, transform=ccrs.PlateCarree())
+        # ax.quiver(lon[::qs, ::qs], lat[::qs, ::qs], u_sub[::qs, ::qs], v_sub[::qs, ::qs], scale=1000,
+        #           width=.002, headlength=4, transform=ccrs.PlateCarree())
+
+        ax.quiver(lon[::qs, ::qs], lat[::qs, ::qs], u_sub_standardize[::qs, ::qs], v_sub_standardize[::qs, ::qs],
+                  scale=50, width=.002, headlength=4, transform=ccrs.PlateCarree())
 
         plt.savefig(figname, dpi=200)
         plt.close()
-
-
-def wind_uv_to_spd(u, v):
-    """
-    Calculates the wind speed from the u and v wind components
-    :param u: west/east direction (wind from the west is positive, from the east is negative)
-    :param v: south/noth direction (wind from the south is positive, from the north is negative)
-    :returns WSPD: wind speed calculated from the u and v wind components
-    """
-    WSPD = np.sqrt(np.square(u) + np.square(v))
-
-    return WSPD
 
 
 def main(args):
     start_time = time.time()
     wrf_procdir = args.wrf_dir
     save_dir = args.save_dir
-
-    la_polygon = cf.extract_lease_areas()
 
     if wrf_procdir.endswith('/'):
         ext = '*.nc'
@@ -129,6 +160,9 @@ def main(args):
     # List of variables to plot
     plt_vars = ['ws10', 'ws80', 'ws160']
 
+    kwargs = dict()
+    # kwargs['lease_areas'] = cf.extract_lease_areas()
+
     for i, f in enumerate(files):
         fname = f.split('/')[-1].split('.')[0]
         splitter = fname.split('/')[-1].split('_')
@@ -136,11 +170,11 @@ def main(args):
         for pv in plt_vars:
             sfile = cf.save_filepath(save_dir, pv, splitter)
             if pv == 'ws10':
-                plt_windsp(ncfile, model_ver, '10m', sfile, la_polygon)
+                plt_windsp(ncfile, model_ver, '10m', sfile, **kwargs)
             elif pv == 'ws80':
-                plt_windsp(ncfile, model_ver, '80m', sfile, la_polygon)
+                plt_windsp(ncfile, model_ver, '80m', sfile, **kwargs)
             elif pv == 'ws160':
-                plt_windsp(ncfile, model_ver, '160m', sfile, la_polygon)
+                plt_windsp(ncfile, model_ver, '160m', sfile, **kwargs)
 
     print('')
     print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))

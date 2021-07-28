@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/28/2020
-Last Modified: 8/28/2020
+Last Modified: 7/28/2021
 Creates surface map of local radar. These plots are used to populate RUCOOL's Coastal Metocean Monitoring Station
 webpage: https://rucool.marine.rutgers.edu/data/meteorological-modeling/coastal-metocean-monitoring-station/
 """
@@ -41,7 +41,7 @@ def main(args):
     hhmm = tm.strftime('%H:%M')
     dmy = tm.strftime('%d%b%Y')
     insert_text1 = 'Valid {}Z {}'.format(hhmm, dmy)
-    ax.text(.7, -.12, insert_text1, size=10, transform=ax.transAxes)
+    ax.text(1, -.1, insert_text1, size=10, transform=ax.transAxes, horizontalalignment='right')
 
     # define axis limits and add map layers
     ax_lims = [-77.5, -71.5, 37.5, 42.1]
@@ -53,10 +53,15 @@ def main(args):
     vmin = 0
     vmax = 72
     levels = np.linspace(vmin, vmax, 145)
-    ticklevs = np.linspace(vmin, 70, 15)
 
-    pf.plot_contourf(fig, ax, title, lons, lats, radar.values, levels, 'pyart_NWSRef', color_label, var_min=vmin,
-                     var_max=vmax, normalize='no', cbar_ticks=ticklevs)
+    kwargs = dict()
+    kwargs['ttl'] = title
+    kwargs['cmap'] = 'pyart_NWSRef'
+    kwargs['clab'] = color_label
+    kwargs['var_lims'] = [vmin, vmax]
+    kwargs['cbar_ticks'] = np.linspace(vmin, 70, 15).tolist()
+
+    pf.plot_contourf(fig, ax, lons, lats, radar.values, levels, **kwargs)
 
     plt.savefig(save_file, dpi=200)
     plt.close()

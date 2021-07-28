@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/21/2020
-Last modified: 9/9/2020
+Last modified: 7/28/2021
 Creates hourly plots of RU-WRF 4.1 output variables: radar composite reflectivity.
 The plots are used to populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -22,34 +22,41 @@ import functions.plotting as pf
 plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise specified
 
 
-def plt_radar(nc, model, figname, lease_areas):
+def plt_radar(nc, model, figname, lease_areas=None):
     """
     Create filled contour surface maps of radar reflectivity
     :param nc: netcdf file
     :param model: the model version that is being plotted, e.g. 3km or 9km
     :param figname: full file path to save directory and save filename
-    :param lease_areas: dictionary containing lat/lon coordinates for wind energy lease area polygon
+    :param lease_areas: optional dictionary containing lat/lon coordinates for wind energy lease area polygon
     """
+    lease_areas = lease_areas or None
+
     # MDBZ = max radar reflectivity
     radar = nc['MDBZ']
 
     plot_types = ['full_grid', 'bight']  # plot the full grid and just NY Bight area
     for pt in plot_types:
         if pt == 'full_grid':  # subset the entire grid
-            radar_sub, ax_lims = cf.subset_grid(radar, model)
+            radar_sub, ax_lims, xticks, yticks = cf.subset_grid(radar, model)
         else:  # subset just NY Bight
             new_fname = 'bight_{}'.format(figname.split('/')[-1])
             figname = '/{}/{}'.format(os.path.join(*figname.split('/')[0:-1]), new_fname)
-            radar_sub, ax_lims = cf.subset_grid(radar, 'bight')
+            radar_sub, ax_lims, xticks, yticks = cf.subset_grid(radar, 'bight')
 
         fig, ax, lat, lon = cf.set_map(radar_sub)
 
         # add text to the bottom of the plot
         cf.add_text(ax, nc.SIMULATION_START_DATE, nc.time_coverage_start, model)
 
-        cf.add_map_features(ax, ax_lims)
+        # initialize keyword arguments for map features
+        kwargs = dict()
+        kwargs['xticks'] = xticks
+        kwargs['yticks'] = yticks
+        cf.add_map_features(ax, ax_lims, **kwargs)
 
-        # pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
+        if lease_areas:
+            pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
 
         title = 'Radar Composite Reflectivity ({})'.format(radar.units)
 
@@ -62,8 +69,14 @@ def plt_radar(nc, model, figname, lease_areas):
         if np.nanmax(radar_sub) == 0.0:
             radar_sub.values[radar_sub == 0] = np.nan
 
-        pf.plot_contourf(fig, ax, title, lon, lat, radar_sub, levels, 'pyart_NWSRef', title, var_min=vmin, var_max=vmax,
-                         normalize='no', cbar_ticks=ticklevs)
+        kwargs = dict()
+        kwargs['ttl'] = title
+        kwargs['cmap'] = 'pyart_NWSRef'
+        kwargs['clab'] = title
+        kwargs['var_lims'] = [vmin, vmax]
+        kwargs['cbar_ticks'] = ticklevs.tolist()
+
+        pf.plot_contourf(fig, ax, lon, lat, radar_sub, levels, **kwargs)
 
         plt.savefig(figname, dpi=200)
         plt.close()
@@ -73,8 +86,6 @@ def main(args):
     start_time = time.time()
     wrf_procdir = args.wrf_dir
     save_dir = args.save_dir
-
-    la_polygon = cf.extract_lease_areas()
 
     if wrf_procdir.endswith('/'):
         ext = '*.nc'
@@ -87,12 +98,15 @@ def main(args):
     model_ver = f0.split('/')[-1].split('_')[1]  # 3km or 9km
     os.makedirs(save_dir, exist_ok=True)
 
+    kwargs = dict()
+    #kwargs['lease_areas'] = cf.extract_lease_areas()
+
     for i, f in enumerate(files):
         fname = f.split('/')[-1].split('.')[0]
         splitter = fname.split('/')[-1].split('_')
         ncfile = xr.open_dataset(f, mask_and_scale=False)
         sfile = cf.save_filepath(save_dir, 'radar', splitter)
-        plt_radar(ncfile, model_ver, sfile, la_polygon)
+        plt_radar(ncfile, model_ver, sfile, **kwargs)
 
     print('')
     print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))

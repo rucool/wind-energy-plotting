@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 6/15/2020
-Last modified: 7/14/2020
+Last modified: 7/28/2021
 Creates profile plots of wind speed from RU-WRF 4.1 at native model levels for hours 1-24 and 25-48 at 2 locations:
 1) NYSERDA North LiDAR Buoy
 2) NYSERDA South LiDAR Buoy
@@ -17,6 +17,7 @@ import datetime as dt
 import sys
 import xarray as xr
 import matplotlib.pyplot as plt
+import functions.common as cf
 plt.rcParams.update({'font.size': 14})  # set the font size for all plots
 
 
@@ -45,7 +46,7 @@ def append_model_data(nc_filepath, buoy_locations, data_dict):
     v = np.squeeze(ncfile['v'])[:, i, j]
 
     # calculate wind speed (m/s) from u and v
-    ws = wind_uv_to_spd(u, v)
+    ws = cf.wind_uv_to_spd(u, v)
 
     # append data to array
     data_dict['t'] = np.append(data_dict['t'], ncfile['Time'].values)
@@ -104,16 +105,6 @@ def plot_wndsp_profile(data_dict, hour_info, plt_ttl, model_init_dt, save_filepa
 
             plt.savefig(save_filepath, dpi=200)
             plt.close()
-
-
-def wind_uv_to_spd(u, v):
-    """
-    Calculates the wind speed from the u and v wind components
-    u = west/east direction (wind from the west is positive, from the east is negative)
-    v = south/noth direction (wind from the south is positive, from the north is negative)
-    """
-    WSPD = np.sqrt(np.square(u)+np.square(v))
-    return WSPD
 
 
 def main(args):
