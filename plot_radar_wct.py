@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 7/13/2021
-Last modified: 7/20/2021
+Last modified: 7/28/2021
 Creates a surface map of radar reflectivity from files downloaded from NOAA's Weather and Climate Toolkit:
 https://www.ncdc.noaa.gov/wct/
 """
@@ -26,7 +26,6 @@ def plt_radar(nc, subset_domain, figname):
     :param subset_domain: the plotting limit domain, e.g. 3km, 9km, bight (NY Bight), full_grid, mab, nj, snj
     :param figname: full file path to save directory and save filename
     """
-
     radar = nc['Reflectivity']
 
     radar_sub, ax_lims, xticks, yticks = cf.subset_grid_wct(radar, subset_domain)
@@ -39,16 +38,20 @@ def plt_radar(nc, subset_domain, figname):
     kwargs['yticks'] = yticks
 
     cf.add_map_features(ax, ax_lims, **kwargs)
+
     title = 'Radar Reflectivity ({})'.format(radar_sub.units)
-    vmin = 0
-    vmax = 72
+
+    kwargs = dict()
+    kwargs['ttl'] = title
+    kwargs['cmap'] = 'pyart_NWSRef'
+    kwargs['clab'] = title
+    kwargs['var_lims'] = [0, 72]
 
     # If the array is all zeros, turn the zeros to nans. Otherwise the plot will be all teal instead of white.
     if np.nanmax(radar_sub) == 0.0:
         radar_sub.values[radar_sub == 0] = np.nan
 
-    pf.plot_pcolormesh(fig, ax, title, lon, lat, np.squeeze(radar_sub.values), vmin, vmax, 'pyart_NWSRef',
-                       'Radar Reflectivity ({})'.format(radar_sub.units))
+    pf.plot_pcolormesh(fig, ax, lon, lat, np.squeeze(radar_sub.values), **kwargs)
 
     plt.savefig(figname, dpi=200)
     plt.close()
