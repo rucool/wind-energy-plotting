@@ -88,13 +88,13 @@ def plt_windsp(nc, model, ht, figname, lease_areas=None):
         # calculate wind speed from u and v
         speed = cf.wind_uv_to_spd(u_sub, v_sub)
 
-        # mask vectors if wind speed is < 5
-        mask = speed < 5
+        # mask vectors if wind speed is < 2
+        mask = speed < 2
         u_sub_standardize[mask] = np.nan
         v_sub_standardize[mask] = np.nan
 
         # add contours
-        contour_list = [22, 34, 48, 64]
+        contour_list = [10, 22, 34, 48, 64]
         pf.add_contours(ax, lon, lat, speed, contour_list)
 
         # plot data
