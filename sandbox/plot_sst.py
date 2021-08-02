@@ -2,8 +2,9 @@
 
 """
 Author: Lori Garzio on 8/21/2020
-Last modified: 8/25/2020
-Creates plot of H000 sea surface temperature from RU-WRF 4.1 subset files.
+Last modified: 8/1/2021
+Creates plots of sea surface temperature from RU-WRF 4.1 subset files. SST does not change throughout the day (so all
+plots are the same).
 Note: This script requires fiona to be installed to work properly!
 """
 
@@ -15,6 +16,8 @@ import sys
 import time
 import xarray as xr
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+from matplotlib.colors import BoundaryNorm
 import cmocean as cmo
 import functions.common as cf
 import functions.plotting as pf
@@ -37,15 +40,15 @@ def plt_sst(nc, model, figname):
     plot_types = ['full_grid', 'bight']  # plot the full grid and just NY Bight area
     for pt in plot_types:
         if pt == 'full_grid':  # subset the entire grid
-            sst_sub, ax_lims = cf.subset_grid(sst, model)
-            landmask_sub, __ = cf.subset_grid(landmask, model)
-            lakemask_sub, __ = cf.subset_grid(lakemask, model)
+            sst_sub, ax_lims, xticks, yticks = cf.subset_grid(sst, model)
+            landmask_sub, _, _, _ = cf.subset_grid(landmask, model)
+            lakemask_sub, _, _, _ = cf.subset_grid(lakemask, model)
         else:  # subset just NY Bight
             new_fname = 'bight_{}'.format(figname.split('/')[-1])
             figname = '/{}/{}'.format(os.path.join(*figname.split('/')[0:-1]), new_fname)
-            sst_sub, ax_lims = cf.subset_grid(sst, 'bight')
-            landmask_sub, __ = cf.subset_grid(landmask, 'bight')
-            lakemask_sub, __ = cf.subset_grid(lakemask, 'bight')
+            sst_sub, ax_lims, xticks, yticks = cf.subset_grid(sst, 'bight')
+            landmask_sub, _, _, _ = cf.subset_grid(landmask, 'bight')
+            lakemask_sub, _, _, _ = cf.subset_grid(lakemask, 'bight')
 
         fig, ax, lat, lon = cf.set_map(sst_sub)
 
@@ -68,14 +71,33 @@ def plt_sst(nc, model, figname):
 
         # plot data
         # pcolormesh: coarser resolution, shows the actual resolution of the model data
-        pf.plot_pcolormesh(fig, ax, title, lon, lat, sst_sub_c, 0, 32, cmo.cm.thermal, color_label)
+        vlims = [0, 32]
+        cmap = cmo.cm.thermal
+        levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])  # levels every 2 degrees F
+        norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
+
+        kwargs = dict()
+        kwargs['ttl'] = title
+        kwargs['clab'] = color_label
+        # kwargs['var_lims'] = vlims
+        kwargs['norm_clevs'] = norm
+        kwargs['extend'] = 'both'
+        kwargs['cmap'] = cmap
+        pf.plot_pcolormesh(fig, ax, lon, lat, sst_sub_c, **kwargs)
+
+        #pf.plot_pcolormesh(fig, ax, title, lon, lat, sst_sub_c, 0, 32, cmo.cm.thermal, color_label)
 
         # contourf: smooths the resolution of the model data, plots are less pixelated
         # levels = np.arange(0, 32.05, .05)
         # pf.plot_contourf(fig, ax, title, lon, lat, sst_sub_c, levels, cmo.cm.thermal, color_label, var_min=0,
         #                  var_max=32, normalize='no', cbar_ticks=np.linspace(0, 30, 7))
 
-        cf.add_map_features(ax, ax_lims, landcolor='lightgray')
+        # initialize keyword arguments for map features
+        kwargs = dict()
+        kwargs['xticks'] = xticks
+        kwargs['yticks'] = yticks
+        kwargs['landcolor'] = 'tan'
+        cf.add_map_features(ax, ax_lims, **kwargs)
 
         plt.savefig(figname, dpi=200)
         plt.close()
@@ -97,12 +119,12 @@ def main(args):
     model_ver = f0.split('/')[-1].split('_')[1]  # 3km or 9km
     os.makedirs(save_dir, exist_ok=True)
 
-    # plot data only from the first hour because SST doesn't change for each model run
-    fname = f0.split('/')[-1].split('.')[0]
-    splitter = fname.split('/')[-1].split('_')
-    ncfile = xr.open_dataset(f0, mask_and_scale=False)
-    sfile = cf.save_filepath(save_dir, 'sst', splitter)
-    plt_sst(ncfile, model_ver, sfile)
+    for i, f in enumerate(files):
+        fname = f.split('/')[-1].split('.')[0]
+        splitter = fname.split('/')[-1].split('_')
+        ncfile = xr.open_dataset(f, mask_and_scale=False)
+        sfile = cf.save_filepath(save_dir, 'sst', splitter)
+        plt_sst(ncfile, model_ver, sfile)
 
     print('')
     print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))
@@ -110,6 +132,7 @@ def main(args):
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Plot SST at model H000',
+    arg_parser = argparse.ArgumentParser(description='Plot SST from WRF output',
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     arg_parser.add_argument('-wrf_dir',
