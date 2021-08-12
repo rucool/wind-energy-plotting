@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/21/2020
-Last modified: 8/1/2021
+Last modified: 8/4/2021
 Creates plots of sea surface temperature from RU-WRF 4.1 subset files. SST does not change throughout the day (so all
 plots are the same).
 Note: This script requires fiona to be installed to work properly!
@@ -73,7 +73,7 @@ def plt_sst(nc, model, figname):
         # pcolormesh: coarser resolution, shows the actual resolution of the model data
         vlims = [0, 32]
         cmap = cmo.cm.thermal
-        levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])  # levels every 2 degrees F
+        levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])  # levels every 2 degrees C
         norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
         kwargs = dict()

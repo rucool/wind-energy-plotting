@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/4/2021
-Last modified: 8/4/2021
+Last modified: 8/12/2021
 Creates hourly plots of RU-WRF 4.1 output variables: surface skin temperature. The plots are used to populate
 RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -18,6 +18,7 @@ import xarray as xr
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import BoundaryNorm
+import cmocean as cmo
 import functions.common as cf
 import functions.plotting as pf
 plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise specified
@@ -34,7 +35,7 @@ def plt_tsk(nc, model, figname, lease_areas=None):
     lease_areas = lease_areas or None
 
     tsk = nc['TSK']
-    color_label = 'Surface Skin Temperature ($^\circ$F)'
+    color_label = 'Surface Skin Temperature ($^\circ$C)'
 
     plot_types = ['full_grid', 'bight']  # plot the full grid and just NY Bight area
     for pt in plot_types:
@@ -59,19 +60,25 @@ def plt_tsk(nc, model, figname, lease_areas=None):
         if lease_areas:
             pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
 
-        # convert K to F
-        d = np.squeeze(tsk_sub.values) * 9/5 - 459.67
+        # convert degrees K to F
+        #d = np.squeeze(tsk_sub.values) * 9/5 - 459.67
+
+        # convert degrees K to C
+        d = np.squeeze(tsk_sub.values) - 273.15
 
         # add contour lines
-        contour_list = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+        contour_list = np.linspace(0, 30, 7)
         pf.add_contours(ax, lon, lat, d, contour_list)
 
         # plot data
         # pcolormesh: coarser resolution, shows the actual resolution of the model data
-        vlims = [-20, 110]
-        cmap = plt.get_cmap('jet')
+        # vlims = [-20, 110]
+        # cmap = plt.get_cmap('jet')
         # levels = MaxNLocator(nbins=30).tick_values(vlims[0], vlims[1])  # levels every 5 degrees F
-        levels = MaxNLocator(nbins=65).tick_values(vlims[0], vlims[1])  # levels every 2 degrees F
+        # levels = MaxNLocator(nbins=65).tick_values(vlims[0], vlims[1])  # levels every 2 degrees F
+        vlims = [0, 32]
+        cmap = cmo.cm.thermal
+        levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])  # levels every 2 degrees C
         norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
         kwargs = dict()
@@ -80,6 +87,7 @@ def plt_tsk(nc, model, figname, lease_areas=None):
         # kwargs['var_lims'] = vlims
         kwargs['norm_clevs'] = norm
         kwargs['extend'] = 'both'
+        kwargs['cmap'] = cmap
         pf.plot_pcolormesh(fig, ax, lon, lat, d, **kwargs)
 
         # # contourf: smooths the resolution of the model data, plots are less pixelated
