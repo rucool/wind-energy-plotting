@@ -1,0 +1,13 @@
+# YAML 1.2
+---
+abstract: "Tools for manipulation and visualization of data products to help inform wind energy research and development. These tools are primarily used to create images that populate RUCOOL's RUWRF webpages: https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/ and https://rucool.marine.rutgers.edu/data/meteorological-modeling/coastal-metocean-monitoring-station/"
+authors: 
+  -
+    affiliation: "Rutgers University Center for Ocean Observing Leadership"
+    family-names: Garzio
+    given-names: Lori
+cff-version: "1.1.0"
+message: "If you use this software, please cite it using these metadata."
+repository-code: "https://github.com/rucool/wind-energy-plotting"
+title: "Wind Energy Plotting"
+...
