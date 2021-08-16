@@ -102,8 +102,8 @@ def plt_windsp(nc, model, ht, figname, lease_areas=None, summary=None):
                     summary['rows'].append([tmstr, key, coords['lat'], coords['lon'], ht, wrf_lat, wrf_lon,
                                             np.round(float(sp.values), 4), np.round(float(d.values), 4)])
 
-        # mask vectors if wind speed is < 2
-        mask = speed.values < 2
+        # mask vectors if wind speed is < 1 m/s
+        mask = speed.values < 1
         u_sub_standardize.values[mask] = np.nan
         v_sub_standardize.values[mask] = np.nan
 
