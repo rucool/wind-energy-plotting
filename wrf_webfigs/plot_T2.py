@@ -34,7 +34,7 @@ def plt_2m_temp(nc, model, figname, lease_areas=None):
     lease_areas = lease_areas or None
 
     t2 = nc['T2']
-    color_label = 'Air Temperature ($^\circ$F)'
+    color_label = 'Air Temperature (\N{DEGREE SIGN}F)'
 
     plot_types = ['full_grid', 'bight']  # plot the full grid and just NY Bight area
     for pt in plot_types:
