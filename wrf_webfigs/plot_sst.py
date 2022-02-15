@@ -2,10 +2,8 @@
 
 """
 Author: Lori Garzio on 8/21/2020
-Last modified: 8/4/2021
-Creates plots of sea surface temperature from RU-WRF 4.1 subset files. SST does not change throughout the day (so all
-plots are the same).
-Note: This script requires fiona to be installed to work properly!
+Last modified: 2/15/2022
+Creates a plot of sea surface temperature from RU-WRF 4.1 subset files from H001 (SST does not change throughout the day)
 """
 
 import argparse
@@ -34,8 +32,8 @@ def plt_sst(nc, model, figname):
     sst = nc['SST']
     landmask = nc['LANDMASK']  # 1=land, 0=water
     lakemask = nc['LAKEMASK']  # 1=lake, 0=non-lake
-    color_label = 'SST ($^\circ$C)'
-    title = 'Sea Surface Temperature ($^\circ$C)'
+    color_label = 'SST (\N{DEGREE SIGN}C)'
+    title = 'Sea Surface Temperature (\N{DEGREE SIGN}C)'
 
     plot_types = ['full_grid', 'bight']  # plot the full grid and just NY Bight area
     for pt in plot_types:
@@ -85,13 +83,6 @@ def plt_sst(nc, model, figname):
         kwargs['cmap'] = cmap
         pf.plot_pcolormesh(fig, ax, lon, lat, sst_sub_c, **kwargs)
 
-        #pf.plot_pcolormesh(fig, ax, title, lon, lat, sst_sub_c, 0, 32, cmo.cm.thermal, color_label)
-
-        # contourf: smooths the resolution of the model data, plots are less pixelated
-        # levels = np.arange(0, 32.05, .05)
-        # pf.plot_contourf(fig, ax, title, lon, lat, sst_sub_c, levels, cmo.cm.thermal, color_label, var_min=0,
-        #                  var_max=32, normalize='no', cbar_ticks=np.linspace(0, 30, 7))
-
         # initialize keyword arguments for map features
         kwargs = dict()
         kwargs['xticks'] = xticks
@@ -122,16 +113,16 @@ def main(args):
     for i, f in enumerate(files):
         fname = f.split('/')[-1].split('.')[0]
         splitter = fname.split('/')[-1].split('_')
-        ncfile = xr.open_dataset(f, mask_and_scale=False)
-        sfile = cf.save_filepath(save_dir, 'sst', splitter)
-        plt_sst(ncfile, model_ver, sfile)
+        if splitter[-1] == 'H001':
+            ncfile = xr.open_dataset(f, mask_and_scale=False)
+            sfile = cf.save_filepath(save_dir, 'sst', splitter)
+            plt_sst(ncfile, model_ver, sfile)
 
     print('')
     print('Script run time: {} minutes'.format(round(((time.time() - start_time) / 60), 2)))
 
 
 if __name__ == '__main__':
-    arg_parser = argparse.ArgumentParser(description='Plot SST at model H000',
     arg_parser = argparse.ArgumentParser(description='Plot SST from WRF output',
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 

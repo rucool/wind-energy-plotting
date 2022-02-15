@@ -2,11 +2,11 @@
 
 """
 Author: Lori Garzio on 8/17/2020
-Last modified: 9/11/2020
+Last modified: 2/15/2022
 This is a wrapper script that imports tools to plot RU-WRF 4.1 data using the subset .nc files.
 Plots created: Hourly and Accumulated Rainfall; Air Temperature at 2m; Windspeeds at 10m, 80m, and 160m; Hourly and
 Accumulated Snowfall; Composite Radar Reflectivity; Total, Diffuse, and Direct Shortwave Flux; Wind Gusts;
-and Estimated Wind Power at 160m
+and Estimated Wind Power at 160m, SST at H001
 The plots are used to populate RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
 """
@@ -55,5 +55,8 @@ wrf_webfigs.plot_windgusts.main(parsed_args)
 
 print('Plotting wind power')
 wrf_webfigs.plot_windpower.main(parsed_args)
+
+print('Plotting SST')
+wrf_webfigs.plot_sst.main(parsed_args)
 
 sys.exit()
