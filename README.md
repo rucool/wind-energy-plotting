@@ -1,5 +1,5 @@
 # Wind Energy Plotting
-Tools for plotting wind energy data.
+Tools for the manipulation and visualization of data products to help inform wind energy research and development. These tools are primarily used to create images that populate RUCOOL's [Coastal Metocean Monitoring Station](https://rucool.marine.rutgers.edu/data/meteorological-modeling/coastal-metocean-monitoring-station/) and [RUWRF Mesoscale Meteorological Model](https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/) webpages.
 
 Rutgers University Center for Ocean Observing Leadership
 
@@ -30,3 +30,5 @@ Install the toolbox to the conda environment from the root directory of the wind
 `pip install .`
 
 The toolbox should now be installed to your conda environment.
+
+## Citation
