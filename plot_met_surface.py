@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 9/1/2020
-Last Modified: 4/18/2021
+Last Modified: 4/18/2022
 Creates timeseries plots of wind speed, air temperature, and sea level pressure from RUCOOL's meteorological tower for
 the three most recent days of available data.
 These plots are used to populate RUCOOL's Coastal Metocean Monitoring Station webpage:
