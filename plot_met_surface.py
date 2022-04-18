@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 9/1/2020
-Last Modified: 6/22/2021
+Last Modified: 4/18/2021
 Creates timeseries plots of wind speed, air temperature, and sea level pressure from RUCOOL's meteorological tower for
 the three most recent days of available data.
 These plots are used to populate RUCOOL's Coastal Metocean Monitoring Station webpage:
@@ -59,18 +59,18 @@ def wind_uv_to_spd(u, v):
 
 def main(args):
     save_dir = args.save_dir
-    met_dir = '/home/coolgroup/MetData/CMOMS/surface/daily'
+    met_dir = '/home/coolgroup/MetData/CMOMS/surface_temp/surface'
     os.makedirs(save_dir, exist_ok=True)
 
     # find the most recent file
-    last_file = sorted(glob.glob(os.path.join(met_dir, '*.dat')))[-1]
-    last_file_day = dt.datetime.strptime(last_file.split('/')[-1].split('.')[-2], '%Y%m%d')
+    last_file = sorted(glob.glob(os.path.join(met_dir, '*.csv')))[-1]
+    last_file_day = dt.datetime.strptime(last_file.split('_')[-2], '%Y%m%d')
 
     # define files for the 3 most recent available days of data
     # today = dt.datetime.utcnow()
-    days = [2, 1]
+    int_days = [2, 1]
     fext = []
-    for d in days:
+    for d in int_days:
         fext.append((last_file_day - dt.timedelta(days=d)).strftime('%Y%m%d'))
     fext.append(last_file_day.strftime('%Y%m%d'))
 
@@ -84,17 +84,19 @@ def main(args):
     #     print('No file for today - skipping plot')
     #     quit()
 
-    for f in fext:
+    for dd in fext:
         try:
-            fname = glob.glob(met_dir + '/*surface.' + f + '.dat')[0]
+            day_files = sorted(glob.glob(met_dir + '/RUT_' + dd + '*.csv'))
         except IndexError:
             continue
-        df1 = pd.read_csv(fname)
-        cols = ['time_stamp(utc)', 'avg(mph)', 'gust(mph)', 'sonic_u(cm/s)', 'sonic_v(cm/s)', '12m_air_temp(f)',
-                '2m_air_temp(f)', 'pressure']
-        dfc = df1[cols]
-        if len(dfc) > 0:
-            df = df.append(dfc)
+
+        for f in day_files:
+            df1 = pd.read_csv(f)
+            cols = ['time_stamp(utc)', 'avg(mph)', 'gust(mph)', 'sonic_u(cm/s)', 'sonic_v(cm/s)', '12m_air_temp(f)',
+                    '2m_air_temp(f)', 'pressure']
+            dfc = df1[cols]
+            if len(dfc) > 0:
+                df = df.append(dfc)
 
     tm = pd.to_datetime(np.array(df['time_stamp(utc)']))
 
