@@ -99,7 +99,7 @@ def plt_windsp(nc, model, ht, figname, lease_areas=None):
 
         # plot data
         # pcolormesh: coarser resolution, shows the actual resolution of the model data
-        cmap = plt.get_cmap('jet')  # 'turbo'
+        cmap = plt.get_cmap('turbo')
         vlims = [0, 20]
         levels = MaxNLocator(nbins=20).tick_values(vlims[0], vlims[1])  # every 2 knots
         norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
