@@ -64,7 +64,7 @@ def main(args):
 
     wrf_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed/3km', ymd)
     sst_inputs_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/sst-input', ymd)
-    gfs_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/validation_data/gfs', str(yr), ymd)
+    gfs_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/validation_data/gfs', f'{ymd}00')
 
     wrf_file = glob.glob(os.path.join(wrf_dir, 'wrfproc_*_00Z_H000.nc'))[0]
     sf_file = os.path.join(sst_inputs_dir, 'SST_raw_yesterday.nc')
