@@ -51,6 +51,7 @@ def subset_grid(ext, dataset, lon_name, lat_name):
 
 
 def main(args):
+#def main(ymd, save_dir):
     ymd = args.ymd
     save_dir = args.save_dir
 
@@ -168,6 +169,9 @@ def main(args):
 
 
 if __name__ == '__main__':
+    # ymd = '20220708'
+    # sDir = '/Users/garzio/Documents/rucool/bpu/wrf/sst-input-output'
+    # main(ymd, sDir)
     arg_parser = argparse.ArgumentParser(description='Plot WRF SST inputs and output',
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 

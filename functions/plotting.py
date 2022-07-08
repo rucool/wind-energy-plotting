@@ -144,7 +144,8 @@ def plot_pcolormesh(fig, ax, lon_data, lat_data, var_data, ttl=None, cmap=None, 
         cb.set_label(label=clab, fontsize=14)
 
 
-def plot_pcolormesh_panel(fig, ax, lon_data, lat_data, var_data, panel_title=None, cmap=None, clab=None, var_lims=None):
+def plot_pcolormesh_panel(fig, ax, lon_data, lat_data, var_data, panel_title=None, cmap=None, clab=None, var_lims=None,
+                          norm_clevs=None, extend=None, title_pad=None):
     """
     Create a pseudocolor plot for panel plots (e.g. cloud fraction)
     :param fig: figure object
@@ -156,22 +157,33 @@ def plot_pcolormesh_panel(fig, ax, lon_data, lat_data, var_data, panel_title=Non
     :param cmap: optional color map, default is 'jet'
     :param clab: optional colorbar label, if None colorbar is not added
     :param var_lims: optional [minimum, maximum] values for plotting (for fixed colorbar)
+    :param norm_clevs: optional normalized levels
+    :param extend: optional extend the colorbar, default is 'neither'
     """
     panel_title = panel_title or None
     cmap = cmap or 'jet'
     var_lims = var_lims or None
     clab = clab or None
+    norm_clevs = norm_clevs or None
+    extend = extend or 'neither'
+    title_pad = title_pad or 7
 
     if panel_title:
-        ax.set_title(panel_title, fontsize=15)
+        ax.set_title(panel_title, fontsize=15, pad=title_pad)
     divider = make_axes_locatable(ax)
     cax = divider.new_horizontal(size='5%', pad=0.1, axes_class=plt.Axes)
 
-    h = ax.pcolormesh(lon_data, lat_data, var_data, vmin=var_lims[0], vmax=var_lims[1], cmap=cmap,
-                      transform=ccrs.PlateCarree())
+    if var_lims:
+        h = ax.pcolormesh(lon_data, lat_data, var_data, vmin=var_lims[0], vmax=var_lims[1],  cmap=cmap,
+                          transform=ccrs.PlateCarree())
+    elif norm_clevs:
+        h = ax.pcolormesh(lon_data, lat_data, var_data, cmap=cmap, norm=norm_clevs,
+                          transform=ccrs.PlateCarree())
+    else:
+        h = ax.pcolormesh(lon_data, lat_data, var_data, cmap=cmap, transform=ccrs.PlateCarree())
 
     if clab:
         fig.add_axes(cax)
-        cb = plt.colorbar(h, cax=cax)
+        cb = plt.colorbar(h, cax=cax, extend=extend)
         cb.set_label(label=clab, fontsize=14)
         cb.ax.tick_params(labelsize=12)
