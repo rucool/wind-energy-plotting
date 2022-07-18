@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 8/21/2020
-Last modified: 2/15/2022
+Last modified: 7/18/2022
 Creates a plot of sea surface temperature from RU-WRF 4.1 subset files from H001 (SST does not change throughout the day)
 """
 
@@ -69,9 +69,13 @@ def plt_sst(nc, model, figname):
 
         # plot data
         # pcolormesh: coarser resolution, shows the actual resolution of the model data
-        vlims = [0, 32]
+        #vlims = [0, 32]
+        #bins = 16
+        vlims = [20, 31]
+        bins = 12
+        #vlims = [np.nanmin(sst_sub_c), np.nanmax(sst_sub_c)]
         cmap = cmo.cm.thermal
-        levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])  # levels every 2 degrees C
+        levels = MaxNLocator(nbins=bins).tick_values(vlims[0], vlims[1])  # levels every x degrees C
         norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
         kwargs = dict()
