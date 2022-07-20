@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 7/6/2022
-Last modified: 7/8/2022
+Last modified: 7/20/2022
 Creates 4-panel surface maps of sea surface temperature from RU-WRF 4.1 input files (GOES Spike Filter and RTG), GFS
 SST data from 000Z, and RU-WRF 4.1 output SST
 """
@@ -84,10 +84,10 @@ def main(args):
 
     # convert values over land and lakes to nans
     ldmask = np.logical_and(landmask == 1, landmask == 1)
-    #sst_wrf.values[ldmask] = np.nan
+    sst_wrf.values[ldmask] = np.nan
 
     lkmask = np.logical_and(lakemask == 1, lakemask == 1)
-    #sst_wrf.values[lkmask] = np.nan
+    sst_wrf.values[lkmask] = np.nan
 
     # get spike filter input SST
     ds_sf = xr.open_dataset(sf_file)
@@ -101,9 +101,12 @@ def main(args):
     ds_gfs = xr.open_dataset(gfs_file, engine='pynio')
     sst_gfs = np.squeeze(ds_gfs.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
 
-    vlims = [14, 30]
+    # vlims = [14, 30]
+    # bins = 16
+    vlims = [20, 31]
+    bins = 12
     cmap = cmo.cm.thermal
-    levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])  # levels every 1 degrees C
+    levels = MaxNLocator(nbins=bins).tick_values(vlims[0], vlims[1])
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
     main_title = f'RU-WRF Sea Surface Temperature: {pd.to_datetime(ymd).strftime("%Y-%m-%d")}'
 
@@ -111,7 +114,7 @@ def main(args):
         save_file = os.path.join(save_dir_zoom_out, f'ru-wrf_sst_{ymd}')
         kwargs = dict()
         kwargs['zoom_coastline'] = False
-        kwargs['landcolor'] = 'none'
+        #kwargs['landcolor'] = 'none'
         if key == 'extent_bight':
             save_file = os.path.join(save_dir_zoom_in, f'ru-wrf_sst_bight_{ymd}')
             kwargs['zoom_coastline'] = True
