@@ -149,7 +149,7 @@ def main(args):
         pf.add_contours(ax4, lon_wrf, lat_wrf, sst_wrf_sub.values, contour_list)
 
         kwargs = dict()
-        kwargs['panel_title'] = 'Spike Filter Input'
+        kwargs['panel_title'] = 'GOES-SF + RTG Input'
         kwargs['norm_clevs'] = norm
         kwargs['extend'] = 'both'
         kwargs['cmap'] = cmap
