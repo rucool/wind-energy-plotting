@@ -51,7 +51,6 @@ def subset_grid(ext, dataset, lon_name, lat_name):
 
 
 def main(args):
-#def main(ymd, save_dir):
     ymd = args.ymd
     save_dir = args.save_dir
 
@@ -67,7 +66,7 @@ def main(args):
 
     wrf_dir_3km = os.path.join('/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed/3km', ymd)
     wrf_dir_9km = os.path.join('/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed/9km', ymd)
-    goes_sf_dir = os.path.join('/home/coolgroup/bpu/wrf/data/goes_composites/composites', yr)
+    goes_sf_dir = os.path.join('/home/coolgroup/bpu/wrf/data/goes_composites/composites', f'{yr}')
     sst_inputs_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/sst-input', ymd)
 
     extent_3km, __, __, __ = cf.define_axis_limits('3km')
@@ -203,9 +202,6 @@ def main(args):
 
 
 if __name__ == '__main__':
-    # ymd = '20220708'
-    # sDir = '/Users/garzio/Documents/rucool/bpu/wrf/sst-input-output'
-    # main(ymd, sDir)
     arg_parser = argparse.ArgumentParser(description='Plot WRF SST inputs and output',
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
