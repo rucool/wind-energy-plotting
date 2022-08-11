@@ -170,7 +170,7 @@ def main(args):
         hp.map_create(values['lims'], ax=ax4, **kwargs)
 
         contour_list = [15, 20, 25, 30]
-        if np.sum(np.isinf(sst_goes.values)) > 0:  # check if the GOES-SF file has any data
+        if np.sum(~np.isnan(goes_sub.values)) > 0:  # check if the GOES-SF file has any data
             pf.add_contours(ax1, lon_goes, lat_goes, goes_sub.values, contour_list)
         pf.add_contours(ax2, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, contour_list)
         pf.add_contours(ax3, lon_rtg, lat_rtg, sst_rtg_sub.values, contour_list)
