@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 7/6/2022
-Last modified: 8/9/2022
+Last modified: 8/11/2022
 Creates 4-panel surface maps of sea surface temperature from 1) GOES Spike Filter, 2) the RU-WRF 4.1 input files
 (GOES Spike Filter and RTG composite, "SST_raw_yesterday.nc"), 3) RTG only and 4) RU-WRF 4.1 output SST
 """
@@ -170,7 +170,8 @@ def main(args):
         hp.map_create(values['lims'], ax=ax4, **kwargs)
 
         contour_list = [15, 20, 25, 30]
-        pf.add_contours(ax1, lon_goes, lat_goes, goes_sub.values, contour_list)
+        if np.sum(np.isinf(sst_goes.values)) > 0:  # check if the GOES-SF file has any data
+            pf.add_contours(ax1, lon_goes, lat_goes, goes_sub.values, contour_list)
         pf.add_contours(ax2, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, contour_list)
         pf.add_contours(ax3, lon_rtg, lat_rtg, sst_rtg_sub.values, contour_list)
         pf.add_contours(ax4, lon_wrf, lat_wrf, sst_wrf_sub.values, contour_list)
