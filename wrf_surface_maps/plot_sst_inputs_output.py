@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 7/6/2022
-Last modified: 8/11/2022
+Last modified: 8/16/2022
 Creates 4-panel surface maps of sea surface temperature from 1) GOES Spike Filter, 2) the RU-WRF 4.1 input files
 (GOES Spike Filter and RTG composite, "SST_raw_yesterday.nc"), 3) RTG only and 4) RU-WRF 4.1 output SST
 """
@@ -96,12 +96,20 @@ def main(args):
     #gfs_file = glob.glob(os.path.join(gfs_dir, 'gfs*.f000.grib2'))[0]
 
     # get GOES Spike Filter file
-    ds_goes = xr.open_dataset(goes_sf_file)
-    sst_goes = np.squeeze(ds_goes.sst)
+    try:
+        ds_goes = xr.open_dataset(goes_sf_file)
+        sst_goes = np.squeeze(ds_goes.sst)
+    except FileNotFoundError:
+        print(f'No such file or directory: {goes_sf_file}')
+        sst_goes = None
 
     # get WRF SST input file
-    ds_wrf_input = xr.open_dataset(wrf_sst_input_file)
-    sst_wrf_input = np.squeeze(ds_wrf_input.sst)
+    try:
+        ds_wrf_input = xr.open_dataset(wrf_sst_input_file)
+        sst_wrf_input = np.squeeze(ds_wrf_input.sst)
+    except FileNotFoundError:
+        print(f'No such file or directory: {wrf_sst_input_file}')
+        sst_wrf_input = None
 
     # get RTG input SST (file is from the previous day for WRF input)
     ds_rtg = xr.open_dataset(rtg_file, engine='pynio')
@@ -153,8 +161,14 @@ def main(args):
         ax4 = axs[1, 1]
         fig.suptitle(main_title, fontsize=16, y=.98)
 
-        goes_sub, lon_goes, lat_goes = subset_grid(values['lims'], sst_goes, 'lon', 'lat')
-        sst_wrf_input_sub, lon_sst_wrf_input, lat_sst_wrf_input = subset_grid(values['lims'], sst_wrf_input, 'lon', 'lat')
+        if type(sst_goes) == xr.core.dataarray.DataArray:
+            goes_sub, lon_goes, lat_goes = subset_grid(values['lims'], sst_goes, 'lon', 'lat')
+        else:
+            goes_sub = None
+        if type(sst_wrf_input) == xr.core.dataarray.DataArray:
+            sst_wrf_input_sub, lon_sst_wrf_input, lat_sst_wrf_input = subset_grid(values['lims'], sst_wrf_input, 'lon', 'lat')
+        else:
+            sst_wrf_input_sub = None
         sst_rtg_sub, lon_rtg, lat_rtg = subset_grid(values['lims'], sst_rtg, 'lon_0', 'lat_0')
         sst_wrf_sub, lon_wrf, lat_wrf = subset_grid(values['lims'], sst_wrf, 'XLONG', 'XLAT')
         #sst_gfs_sub, lon_gfs, lat_gfs = subset_grid(values['lims'], sst_gfs, 'lon_0', 'lat_0')
@@ -170,9 +184,11 @@ def main(args):
         hp.map_create(values['lims'], ax=ax4, **kwargs)
 
         contour_list = [15, 20, 25, 30]
-        if np.sum(~np.isnan(goes_sub.values)) > 0:  # check if the GOES-SF file has any data
-            pf.add_contours(ax1, lon_goes, lat_goes, goes_sub.values, contour_list)
-        pf.add_contours(ax2, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, contour_list)
+        if type(goes_sub) == xr.core.dataarray.DataArray:
+            if np.sum(~np.isnan(goes_sub.values)) > 0:  # check if the GOES-SF file has any data
+                pf.add_contours(ax1, lon_goes, lat_goes, goes_sub.values, contour_list)
+        if type(sst_wrf_input_sub) == xr.core.dataarray.DataArray:
+            pf.add_contours(ax2, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, contour_list)
         pf.add_contours(ax3, lon_rtg, lat_rtg, sst_rtg_sub.values, contour_list)
         pf.add_contours(ax4, lon_wrf, lat_wrf, sst_wrf_sub.values, contour_list)
 
@@ -182,14 +198,20 @@ def main(args):
         kwargs['extend'] = 'both'
         kwargs['cmap'] = cmap
         kwargs['title_pad'] = 8
-        pf.plot_pcolormesh_panel(fig, ax1, lon_goes, lat_goes, goes_sub.values, **kwargs)
+        if type(goes_sub) == xr.core.dataarray.DataArray:
+            pf.plot_pcolormesh_panel(fig, ax1, lon_goes, lat_goes, goes_sub.values, **kwargs)
+        else:
+            ax1.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
         kwargs['panel_title'] = f'RTG'
         pf.plot_pcolormesh_panel(fig, ax3, lon_rtg, lat_rtg, sst_rtg_sub.values, **kwargs)
 
         kwargs['panel_title'] = 'GOES-SF + RTG Composite'
         kwargs['clab'] = 'SST (\N{DEGREE SIGN}C)'
-        pf.plot_pcolormesh_panel(fig, ax2, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, **kwargs)
+        if type(sst_wrf_input_sub) == xr.core.dataarray.DataArray:
+            pf.plot_pcolormesh_panel(fig, ax2, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, **kwargs)
+        else:
+            ax2.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
         kwargs['panel_title'] = 'RU-WRF Output'
         pf.plot_pcolormesh_panel(fig, ax4, lon_wrf, lat_wrf, sst_wrf_sub.values, **kwargs)
