@@ -57,9 +57,9 @@ def main(args):
     yr = pd.to_datetime(ymd).year
     ym = ymd[0:6]
 
-    save_dir_3km_zoom_out = os.path.join(save_dir, str(yr), '3km', ym, 'zoom_out')
-    save_dir_3km_zoom_in = os.path.join(save_dir, str(yr), '3km', ym, 'zoom_in')
-    save_dir_9km_zoom_out = os.path.join(save_dir, str(yr), '9km', ym, 'zoom_out')
+    save_dir_3km_zoom_out = os.path.join(save_dir, str(yr), '4panel', '3km', ym, 'zoom_out')
+    save_dir_3km_zoom_in = os.path.join(save_dir, str(yr), '4panel', '3km', ym, 'zoom_in')
+    save_dir_9km_zoom_out = os.path.join(save_dir, str(yr), '4panel', '9km', ym, 'zoom_out')
     os.makedirs(save_dir_3km_zoom_out, exist_ok=True)
     os.makedirs(save_dir_3km_zoom_in, exist_ok=True)
     os.makedirs(save_dir_9km_zoom_out, exist_ok=True)
