@@ -103,7 +103,7 @@ def main(args):
             pf.add_contours(ax, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, contour_list)
 
         kwargs = dict()
-        kwargs['ttl'] = 'GOES-SF + RTG Composite'
+        kwargs['ttl'] = f'GOES-SF + RTG Composite {pd.to_datetime(ymd).strftime("%Y-%m-%d")}'
         kwargs['norm_clevs'] = norm
         kwargs['extend'] = 'both'
         kwargs['cmap'] = cmap
