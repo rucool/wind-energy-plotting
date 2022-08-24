@@ -177,6 +177,7 @@ def main(args):
     plt.savefig(figname, dpi=200)
     plt.close()
 
+    return pd.to_datetime(np.nanmax(tm)).strftime('%Y-%m-%d %H:%M')
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Plot wind speeds, air temperature, and sea level pressure',
