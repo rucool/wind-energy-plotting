@@ -51,7 +51,8 @@ def subset_grid(ext, dataset, lon_name, lat_name):
 def main(args):
     ymd = args.ymd
     save_dir = args.save_dir
-    vlims = args.vlims
+    vmin = args.vmin
+    vmax = args.vmax
 
     yr = pd.to_datetime(ymd).year
     ym = ymd[0:6]
@@ -82,9 +83,9 @@ def main(args):
     # vlims = [14, 30]
     # bins = 16
     # vlims = [20, 31]
-    bins = vlims[1] - vlims[0]
+    bins = vmax - vmin
     cmap = cmo.cm.thermal
-    levels = MaxNLocator(nbins=bins).tick_values(vlims[0], vlims[1])
+    levels = MaxNLocator(nbins=bins).tick_values(vmin, vmax)
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
     for key, values in extents.items():
@@ -126,10 +127,15 @@ if __name__ == '__main__':
                             type=str,
                             help='Year-month-day to plot in the format YYYYmmdd (e.g. 20220101.')
 
-    arg_parser.add_argument('-vlims',
-                            default=[14, 30],
-                            type=list,
-                            help='Color bar limits [min, max].')
+    arg_parser.add_argument('-vmin',
+                            default=14,
+                            type=int,
+                            help='Color bar minimum limit.')
+
+    arg_parser.add_argument('-vmax',
+                            default=30,
+                            type=int,
+                            help='Color bar maximum limit.')
 
     arg_parser.add_argument('-save_dir',
                             default='/www/web/rucool/windenergy/ru-wrf/images/daily/sst-input',
