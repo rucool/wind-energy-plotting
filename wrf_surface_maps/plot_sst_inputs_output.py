@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 7/6/2022
-Last modified: 8/16/2022
+Last modified: 9/20/2022
 Creates 4-panel surface maps of sea surface temperature from 1) GOES Spike Filter, 2) the RU-WRF 4.1 input files
 (GOES Spike Filter and RTG composite, "SST_raw_yesterday.nc"), 3) RTG only and 4) RU-WRF 4.1 output SST
 """
@@ -53,6 +53,8 @@ def subset_grid(ext, dataset, lon_name, lat_name):
 def main(args):
     ymd = args.ymd
     save_dir = args.save_dir
+    vmin = args.vmin
+    vmax = args.vmax
 
     yr = pd.to_datetime(ymd).year
     ym = ymd[0:6]
@@ -121,10 +123,10 @@ def main(args):
 
     # vlims = [14, 30]
     # bins = 16
-    vlims = [20, 31]
-    bins = 12
+    # vlims = [20, 31]
+    bins = vmax - vmin
     cmap = cmo.cm.thermal
-    levels = MaxNLocator(nbins=bins).tick_values(vlims[0], vlims[1])
+    levels = MaxNLocator(nbins=bins).tick_values(vmin, vmax)
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
     for key, values in extents.items():
@@ -231,6 +233,16 @@ if __name__ == '__main__':
     arg_parser.add_argument('ymd',
                             type=str,
                             help='Year-month-day to plot in the format YYYYmmdd (e.g. 20220101.')
+
+    arg_parser.add_argument('-vmin',
+                            default=14,
+                            type=int,
+                            help='Color bar minimum limit.')
+
+    arg_parser.add_argument('-vmax',
+                            default=30,
+                            type=int,
+                            help='Color bar maximum limit.')
 
     arg_parser.add_argument('-save_dir',
                             default='/www/web/rucool/windenergy/ru-wrf/images/daily/sst-input',
