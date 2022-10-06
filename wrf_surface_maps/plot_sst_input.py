@@ -132,16 +132,6 @@ if __name__ == '__main__':
                             type=str,
                             help='Year-month-day to plot in the format YYYYmmdd (e.g. 20220101.')
 
-    arg_parser.add_argument('-vmin',
-                            default=14,
-                            type=int,
-                            help='Color bar minimum limit.')
-
-    arg_parser.add_argument('-vmax',
-                            default=30,
-                            type=int,
-                            help='Color bar maximum limit.')
-
     arg_parser.add_argument('-save_dir',
                             default='/www/web/rucool/windenergy/ru-wrf/images/daily/sst-input',
                             type=str,
