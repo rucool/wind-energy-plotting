@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 7/6/2022
-Last modified: 9/20/2022
+Last modified: 10/6/2022
 Creates 4-panel surface maps of sea surface temperature from 1) GOES Spike Filter, 2) the RU-WRF 4.1 input files
 (GOES Spike Filter and RTG composite, "SST_raw_yesterday.nc"), 3) RTG only and 4) RU-WRF 4.1 output SST
 """
@@ -14,6 +14,7 @@ import os
 import glob
 import sys
 import xarray as xr
+import yaml
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import BoundaryNorm
@@ -53,11 +54,10 @@ def subset_grid(ext, dataset, lon_name, lat_name):
 def main(args):
     ymd = args.ymd
     save_dir = args.save_dir
-    vmin = args.vmin
-    vmax = args.vmax
 
     yr = pd.to_datetime(ymd).year
     ym = ymd[0:6]
+    month = pd.to_datetime(ymd).month
 
     save_dir_3km_zoom_out = os.path.join(save_dir, str(yr), '4panel', '3km', ym, 'zoom_out')
     save_dir_3km_zoom_in = os.path.join(save_dir, str(yr), '4panel', '3km', ym, 'zoom_in')
@@ -121,12 +121,17 @@ def main(args):
     # ds_gfs = xr.open_dataset(gfs_file, engine='pynio')
     # sst_gfs = np.squeeze(ds_gfs.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
 
-    # vlims = [14, 30]
-    # bins = 16
-    # vlims = [20, 31]
-    bins = vmax - vmin
+    # get colorbar limits from configuration file
+    configfile = cf.sst_surface_map_config()
+    with open(configfile) as config:
+        config_info = yaml.full_load(config)
+        for k, v in config_info.items():
+            if month in v['months']:
+                color_lims = v['color_lims']
+
+    bins = color_lims[1] - color_lims[0]
     cmap = cmo.cm.thermal
-    levels = MaxNLocator(nbins=bins).tick_values(vmin, vmax)
+    levels = MaxNLocator(nbins=bins).tick_values(color_lims[0], color_lims[1])
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
     for key, values in extents.items():
@@ -185,7 +190,7 @@ def main(args):
         kwargs['bottom_label'] = True
         hp.map_create(values['lims'], ax=ax4, **kwargs)
 
-        contour_list = [15, 20, 25, 30]
+        contour_list = [5, 10, 15, 20, 25, 30]
         if type(goes_sub) == xr.core.dataarray.DataArray:
             if np.sum(~np.isnan(goes_sub.values)) > 0:  # check if the GOES-SF file has any data
                 pf.add_contours(ax1, lon_goes, lat_goes, goes_sub.values, contour_list)

@@ -1,0 +1,12 @@
+spring:
+    months: [3, 4, 5]
+    color_lims: [3, 20]
+summer:
+    months: [6, 7, 8]
+    color_lims: [18, 31]
+fall:
+    months: [9, 10, 11]
+    color_lims: [12, 28]
+winter:
+    months: [12, 1, 2]
+    color_lims: [0, 18]

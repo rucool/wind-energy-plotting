@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 7/6/2022
-Last modified: 9/20/2022
+Last modified: 10/6/2022
 Creates a surface map of sea surface temperature from the RU-WRF 4.1 input files (GOES Spike Filter and RTG
 composite, "SST_raw_yesterday.nc")
 """
@@ -13,6 +13,7 @@ import pandas as pd
 import os
 import sys
 import xarray as xr
+import yaml
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import BoundaryNorm
@@ -51,11 +52,10 @@ def subset_grid(ext, dataset, lon_name, lat_name):
 def main(args):
     ymd = args.ymd
     save_dir = args.save_dir
-    vmin = args.vmin
-    vmax = args.vmax
 
     yr = pd.to_datetime(ymd).year
     ym = ymd[0:6]
+    month = pd.to_datetime(ymd).month
 
     save_dir_3km_zoom_in = os.path.join(save_dir, str(yr), 'ruwrf_input', ym)
     os.makedirs(save_dir_3km_zoom_in, exist_ok=True)
@@ -80,12 +80,17 @@ def main(args):
         print(f'No such file or directory: {wrf_sst_input_file}')
         sst_wrf_input = None
 
-    # vlims = [14, 30]
-    # bins = 16
-    # vlims = [20, 31]
-    bins = vmax - vmin
+    # get colorbar limits from configuration file
+    configfile = cf.sst_surface_map_config()
+    with open(configfile) as config:
+        config_info = yaml.full_load(config)
+        for k, v in config_info.items():
+            if month in v['months']:
+                color_lims = v['color_lims']
+
+    bins = color_lims[1] - color_lims[0]
     cmap = cmo.cm.thermal
-    levels = MaxNLocator(nbins=bins).tick_values(vmin, vmax)
+    levels = MaxNLocator(nbins=bins).tick_values(color_lims[0], color_lims[1])
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
     for key, values in extents.items():
@@ -100,7 +105,7 @@ def main(args):
         else:
             sst_wrf_input_sub = None
 
-        contour_list = [15, 20, 25, 30]
+        contour_list = [5, 10, 15, 20, 25, 30]
         if type(sst_wrf_input_sub) == xr.core.dataarray.DataArray:
             pf.add_contours(ax, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, contour_list)
 

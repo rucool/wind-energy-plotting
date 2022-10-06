@@ -238,6 +238,10 @@ def set_map(data):
     return fig, ax, dlat, dlon
 
 
+def sst_surface_map_config():
+    return '/home/wrfadmin/toolboxes/wind-energy-plotting/configs/sst_surface_maps.yml'
+
+
 def subset_grid(data, model):
     """
     Subset the data according to defined latitudes and longitudes, and define the axis limits for the plots
