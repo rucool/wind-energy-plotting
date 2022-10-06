@@ -6,7 +6,7 @@ summer:
     color_lims: [18, 31]
 fall:
     months: [9, 10, 11]
-    color_lims: [12, 28]
+    color_lims: [12, 26]
 winter:
     months: [12, 1, 2]
     color_lims: [0, 18]
