@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 1/14/2022
-Last modified: 2/10/2022
+Last modified: 11/9/2022
 Creates hourly plots of RU-WRF 4.1 output variables: estimated wind power at 160m. The plots are used to populate
 RUCOOL's RU-WRF webpage:
 https://rucool.marine.rutgers.edu/data/meteorological-modeling/ruwrf-mesoscale-meteorological-model-forecast/
@@ -24,7 +24,7 @@ import functions.plotting as pf
 plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise specified
 
 
-def plt_power(nc, model, ht, figname, lease_areas=None):
+def plt_power(nc, model, ht, figname, lease_area_outlines=None):
     """
     Create pseudocolor surface maps of estimated wind power at 160m.
     :param nc: netcdf file
@@ -36,7 +36,7 @@ def plt_power(nc, model, ht, figname, lease_areas=None):
     power_curve = '/home/lgarzio/rucool/bpu/wrf/wrf_lw15mw_power_15001max.csv'  # on server, max is set to 15001
     pc = pd.read_csv(power_curve)
     turbine = power_curve.split('/')[-1].split('_')[1].split('lw')[-1].upper()
-    lease_areas = lease_areas or None
+    lease_area_outlines = lease_area_outlines or None
 
     if ht == '10m':
         u = nc['U10']
@@ -69,8 +69,10 @@ def plt_power(nc, model, ht, figname, lease_areas=None):
         kwargs['yticks'] = yticks
         cf.add_map_features(ax, ax_lims, **kwargs)
 
-        if lease_areas:
-            pf.add_lease_area_polygon(ax, lease_areas, 'magenta')
+        if lease_area_outlines:
+            kwargs = dict()
+            kwargs['edgecolor'] = 'cyan'  # 'dimgray'
+            pf.map_add_boem_outlines(ax, **kwargs)
 
         # calculate wind speed from u and v
         speed = cf.wind_uv_to_spd(u_sub, v_sub)
@@ -130,7 +132,7 @@ def main(args):
     plt_vars = ['power160']
 
     kwargs = dict()
-    # kwargs['lease_areas'] = cf.extract_lease_areas()
+    kwargs['lease_area_outlines'] = True
 
     for i, f in enumerate(files):
         fname = f.split('/')[-1].split('.')[0]

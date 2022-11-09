@@ -5,9 +5,12 @@ Author: Lori Garzio on 8/17/2020
 Last modified: 9/8/2020
 """
 
+import glob
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+from cartopy.io.shapereader import Reader
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 
@@ -42,6 +45,24 @@ def add_lease_area_polygon(ax, lease_area_dict, line_color):
                         poly_lons = [v[i - 1][0], coord[0]]
                         poly_lats = [v[i - 1][1], coord[1]]
                         ax.plot(poly_lons, poly_lats, ls='-', lw=.4, color=line_color, transform=ccrs.PlateCarree())
+
+
+def map_add_boem_outlines(ax, shpfile=None, edgecolor=None, zorder=None, alpha=None):
+    # add BOEM shapefile outlines to a map, the default is to add the lease area outline
+    lease_area_outline = glob.glob('/home/coolgroup/bpu/mapdata/shapefiles/BOEM-Renewable-Energy-Shapefiles-current/Wind_Lease_Outlines*.shp')[0]
+    #lease_area_outline = glob.glob('/Users/garzio/Documents/rucool/bpu/wrf/lease_areas/BOEM-Renewable-Energy-Shapefiles-current/Wind_Lease_Outlines*.shp')[0]
+    shpfile = shpfile or lease_area_outline
+    edgecolor = edgecolor or 'black'
+    zorder = zorder or 1
+    alpha = alpha or 1
+
+    shape_feature = cfeature.ShapelyFeature(
+        Reader(shpfile).geometries(),
+        ccrs.PlateCarree(),
+        edgecolor=edgecolor,
+        facecolor='none'
+        )
+    ax.add_feature(shape_feature, zorder=zorder, alpha=alpha)
 
 
 def plot_contourf(fig, ax, lon_data, lat_data, var_data, clevs, ttl=None, cmap=None, clab=None, var_lims=None,
