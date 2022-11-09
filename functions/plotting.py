@@ -50,7 +50,6 @@ def add_lease_area_polygon(ax, lease_area_dict, line_color):
 def map_add_boem_outlines(ax, shpfile=None, edgecolor=None, zorder=None, alpha=None):
     # add BOEM shapefile outlines to a map, the default is to add the lease area outline
     lease_area_outline = glob.glob('/home/coolgroup/bpu/mapdata/shapefiles/BOEM-Renewable-Energy-Shapefiles-current/Wind_Lease_Outlines*.shp')[0]
-    #lease_area_outline = glob.glob('/Users/garzio/Documents/rucool/bpu/wrf/lease_areas/BOEM-Renewable-Energy-Shapefiles-current/Wind_Lease_Outlines*.shp')[0]
     shpfile = shpfile or lease_area_outline
     edgecolor = edgecolor or 'black'
     zorder = zorder or 1
