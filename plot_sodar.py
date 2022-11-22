@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 5/18/2020
-Last Modified: 6/22/2020
+Last Modified: 11/22/2022
 Creates three wind barb plots: 1) most recent 3 days, 2) most recent 1 day, and 3) most recent 24 hours.
 Circles indicate wind speeds <5 knots
 """
@@ -153,7 +153,10 @@ def main(args):
             fname = glob.glob(sodar_dir + '*sodar.' + f + '.dat')[0]
         except IndexError:
             continue
-        df1 = pd.read_csv(fname)
+        try:
+            df1 = pd.read_csv(fname)
+        except pd.errors.EmptyDataError:
+            continue
 
         # for each wind height, grab all of the columns of data, drop all rows where quality is <60, un-pivot the
         # dataframe, and append the remaining data to the main dataframe
