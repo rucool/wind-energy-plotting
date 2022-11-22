@@ -2,7 +2,7 @@
 
 """
 Author: Lori Garzio on 9/1/2020
-Last Modified: 4/18/2022
+Last Modified: 11/21/2022
 Creates timeseries plots of wind speed, air temperature, and sea level pressure from RUCOOL's meteorological tower for
 the three most recent days of available data.
 These plots are used to populate RUCOOL's Coastal Metocean Monitoring Station webpage:
@@ -91,7 +91,10 @@ def main(args):
             continue
 
         for f in day_files:
-            df1 = pd.read_csv(f)
+            try:
+                df1 = pd.read_csv(f)
+            except pd.errors.EmptyDataError:
+                continue
             cols = ['time_stamp(utc)', 'avg(mph)', 'gust(mph)', 'sonic_u(cm/s)', 'sonic_v(cm/s)', '12m_air_temp(f)',
                     '2m_air_temp(f)', 'pressure']
             dfc = df1[cols]
