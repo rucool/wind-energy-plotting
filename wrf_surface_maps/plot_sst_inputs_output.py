@@ -113,9 +113,13 @@ def main(args):
         print(f'No such file or directory: {wrf_sst_input_file}')
         sst_wrf_input = None
 
-    # get RTG input SST (file is from the previous day for WRF input)
-    ds_rtg = xr.open_dataset(rtg_file, engine='pynio')
-    sst_rtg = np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
+    # get RTG file (file is from the previous day for the WRF input)
+    try:
+        ds_rtg = xr.open_dataset(rtg_file, engine='pynio')
+        sst_rtg = np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
+    except FileNotFoundError:
+        print(f'No such file or directory: {rtg_file}')
+        sst_rtg = None
 
     # # get GFS output (DISCLAIMER: I don't know which hour WRF uses so plotting 000Z for now)
     # ds_gfs = xr.open_dataset(gfs_file, engine='pynio')
@@ -176,7 +180,10 @@ def main(args):
             sst_wrf_input_sub, lon_sst_wrf_input, lat_sst_wrf_input = subset_grid(values['lims'], sst_wrf_input, 'lon', 'lat')
         else:
             sst_wrf_input_sub = None
-        sst_rtg_sub, lon_rtg, lat_rtg = subset_grid(values['lims'], sst_rtg, 'lon_0', 'lat_0')
+        if type(sst_rtg) == xr.core.dataarray.DataArray:
+            sst_rtg_sub, lon_rtg, lat_rtg = subset_grid(values['lims'], sst_rtg, 'lon_0', 'lat_0')
+        else:
+            sst_rtg_sub = None
         sst_wrf_sub, lon_wrf, lat_wrf = subset_grid(values['lims'], sst_wrf, 'XLONG', 'XLAT')
         #sst_gfs_sub, lon_gfs, lat_gfs = subset_grid(values['lims'], sst_gfs, 'lon_0', 'lat_0')
 
@@ -196,7 +203,8 @@ def main(args):
                 pf.add_contours(ax1, lon_goes, lat_goes, goes_sub.values, contour_list)
         if type(sst_wrf_input_sub) == xr.core.dataarray.DataArray:
             pf.add_contours(ax2, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, contour_list)
-        pf.add_contours(ax3, lon_rtg, lat_rtg, sst_rtg_sub.values, contour_list)
+        if type(sst_rtg_sub) == xr.core.dataarray.DataArray:
+            pf.add_contours(ax3, lon_rtg, lat_rtg, sst_rtg_sub.values, contour_list)
         pf.add_contours(ax4, lon_wrf, lat_wrf, sst_wrf_sub.values, contour_list)
 
         kwargs = dict()
