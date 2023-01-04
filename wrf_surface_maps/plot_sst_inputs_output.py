@@ -117,12 +117,12 @@ def main(args):
         sst_wrf_input = None
 
     # get RTG file (file is from the previous day for the WRF input)
-    try:
-        ds_rtg = xr.open_dataset(rtg_file, engine='pynio')
-        sst_rtg = np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
-    except FileNotFoundError:
+    if rtg_file == 'no_file':
         print(f'No such file or directory: {rtg_file}')
         sst_rtg = None
+    else:
+        ds_rtg = xr.open_dataset(rtg_file, engine='pynio')
+        sst_rtg = np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
 
     # # get GFS output (DISCLAIMER: I don't know which hour WRF uses so plotting 000Z for now)
     # ds_gfs = xr.open_dataset(gfs_file, engine='pynio')
