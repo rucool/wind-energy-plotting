@@ -94,7 +94,10 @@ def main(args):
 
     goes_sf_file = os.path.join(goes_sf_dir, f'goes_stacked_composites_{ymd}T0000.nc')
     wrf_sst_input_file = os.path.join(sst_inputs_dir, 'SST_raw_yesterday.nc')
-    rtg_file = glob.glob(os.path.join(sst_inputs_dir, 'rtgssthr_*.grib2'))[0]
+    try:
+        rtg_file = glob.glob(os.path.join(sst_inputs_dir, 'rtgssthr_*.grib2'))[0]
+    except IndexError:
+        rtg_file = None
     #gfs_file = glob.glob(os.path.join(gfs_dir, 'gfs*.f000.grib2'))[0]
 
     # get GOES Spike Filter file
