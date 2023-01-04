@@ -97,7 +97,7 @@ def main(args):
     try:
         rtg_file = glob.glob(os.path.join(sst_inputs_dir, 'rtgssthr_*.grib2'))[0]
     except IndexError:
-        rtg_file = None
+        rtg_file = 'no_file'
     #gfs_file = glob.glob(os.path.join(gfs_dir, 'gfs*.f000.grib2'))[0]
 
     # get GOES Spike Filter file
