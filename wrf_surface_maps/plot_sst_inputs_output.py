@@ -222,7 +222,10 @@ def main(args):
             ax1.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
         kwargs['panel_title'] = f'RTG'
-        pf.plot_pcolormesh_panel(fig, ax3, lon_rtg, lat_rtg, sst_rtg_sub.values, **kwargs)
+        if type(sst_rtg_sub) == xr.core.dataarray.DataArray:
+            pf.plot_pcolormesh_panel(fig, ax3, lon_rtg, lat_rtg, sst_rtg_sub.values, **kwargs)
+        else:
+            ax3.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
         kwargs['panel_title'] = 'GOES-SF + RTG Composite'
         kwargs['clab'] = 'SST (\N{DEGREE SIGN}C)'
