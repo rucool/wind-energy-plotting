@@ -101,7 +101,7 @@ def main(args):
     ds_sport = xr.open_dataset(sport_avhrr_file, engine='pynio')
     sst_sport = np.squeeze(ds_sport.sst.transpose())
 
-    vlims = [10, 30]
+    vlims = [5, 30]
     cmap = cmo.cm.thermal
     levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])  # levels every 1 degrees C
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
@@ -139,7 +139,7 @@ def main(args):
         kwargs['bottom_label'] = True
         hp.map_create(extent, ax=ax4, **kwargs)
 
-        contour_list = [15, 20, 25, 30]
+        contour_list = [10,15, 20, 25, 30]
         try:
             pf.add_contours(ax1, lon_sf, lat_sf, sst_sf_sub.values, contour_list)
         except TypeError:
