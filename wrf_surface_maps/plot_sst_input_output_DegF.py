@@ -14,11 +14,8 @@ import cmocean as cmo
 import functions.common as cf
 import functions.plotting as pf
 import functions.hurricanes_plotting as hp
+plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise specified
 
-plt.rcParams.update({'font.size': 12})
-
-def kelvin_to_fahrenheit(kelvin):
-    return (kelvin - 273.15) * 9/5 + 32
 
 def subset_grid(ext, dataset, lon_name, lat_name):
     if len(np.shape(dataset[lon_name])) == 1:
@@ -27,18 +24,23 @@ def subset_grid(ext, dataset, lon_name, lat_name):
         lonx = dataset[lon_name]
         laty = dataset[lat_name]
 
-    if dataset.name == 'TMP_P0_L1_GLL0':
-        lonx[lonx > 180] = lonx[lonx > 180] - 360
+    if dataset.name == 'TMP_P0_L1_GLL0':  # RTG dataset
+        lonx[lonx > 180] = lonx[lonx > 180] - 360  # convert longitude from 0 to 360 to -180 to 180
 
     lon_idx = np.logical_and(lonx > ext[0], lonx < ext[1])
     lat_idx = np.logical_and(laty > ext[2], laty < ext[3])
 
+    # find i and j indices of lon/lat in boundaries
     ind = np.where(np.logical_and(lat_idx, lon_idx))
+
+    # subset data from min i,j corner to max i,j corner
+    # there will be some points outside of defined boundaries because grid is not rectangular
     data_sub = np.squeeze(dataset)[range(np.min(ind[0]), np.max(ind[0]) + 1), range(np.min(ind[1]), np.max(ind[1]) + 1)]
     lon = data_sub[lon_name]
     lat = data_sub[lat_name]
 
     return data_sub, lon, lat
+
 
 def main(args):
     ymd = args.ymd
@@ -61,7 +63,7 @@ def main(args):
     sst_inputs_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/sst-input', ymd)
 
     extent_3km, __, __, __ = cf.define_axis_limits('3km')
-    extent_bight, __, __, __ = cf.define_axis_limits('bight')
+    extent_bight, __, __, __, = cf.define_axis_limits('bight')
     extent_9km = [-80, -60, 31, 46]
     extents = dict(
         extent_3km=dict(
@@ -87,7 +89,9 @@ def main(args):
         rtg_file = glob.glob(os.path.join(sst_inputs_dir, 'rtgssthr_*.grib2'))[0]
     except IndexError:
         rtg_file = 'no_file'
+    #gfs_file = glob.glob(os.path.join(gfs_dir, 'gfs*.f000.grib2'))[0]
 
+    # get GOES Spike Filter file
     try:
         ds_goes = xr.open_dataset(goes_sf_file)
         sst_goes = np.squeeze(ds_goes.sst)
@@ -95,6 +99,7 @@ def main(args):
         print(f'No such file or directory: {goes_sf_file}')
         sst_goes = None
 
+    # get WRF SST input file
     try:
         ds_wrf_input = xr.open_dataset(wrf_sst_input_file)
         sst_wrf_input = np.squeeze(ds_wrf_input.sst)
@@ -102,38 +107,43 @@ def main(args):
         print(f'No such file or directory: {wrf_sst_input_file}')
         sst_wrf_input = None
 
+    # get RTG file (file is from the previous day for the WRF input)
     if rtg_file == 'no_file':
         print(f'No such file or directory: {rtg_file}')
         sst_rtg = None
     else:
         ds_rtg = xr.open_dataset(rtg_file, engine='pynio')
-        sst_rtg = np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15
+        #sst_rtg = np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
+        sst_rtg = (np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15) * 9/5 + 32  # convert K to degrees F
 
+    # # get GFS output (DISCLAIMER: I don't know which hour WRF uses so plotting 000Z for now)
+    # ds_gfs = xr.open_dataset(gfs_file, engine='pynio')
+    # sst_gfs = np.squeeze(ds_gfs.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
+
+    # get colorbar limits from configuration file
     configfile = cf.sst_surface_map_config()
     with open(configfile) as config:
         config_info = yaml.full_load(config)
         for k, v in config_info.items():
             if month in v['months']:
-                color_lims_celsius = v['color_lims']
-                color_lims_fahrenheit = (
-                    kelvin_to_fahrenheit(color_lims_celsius[0]),
-                    kelvin_to_fahrenheit(color_lims_celsius[1])
-                )
+                color_lims = v['color_lims']
 
-    bins = color_lims_fahrenheit[1] - color_lims_fahrenheit[0]
+    bins = color_lims[1] - color_lims[0]
     cmap = cmo.cm.thermal
-    levels = MaxNLocator(nbins=bins).tick_values(color_lims_fahrenheit[0], color_lims_fahrenheit[1])
+    levels = MaxNLocator(nbins=bins).tick_values(color_lims[0], color_lims[1])
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
     for key, values in extents.items():
         model = key.split("_")[-1]
 
+        # get the appropriate WRF output SST (3km or 9km)
         wrf_file = glob.glob(os.path.join(values['wrfdir'], 'wrfproc_*_00Z_H000.nc'))[0]
         ds = xr.open_dataset(wrf_file)
-        sst_wrf = np.squeeze(ds.SST) - 273.15
-        landmask = np.squeeze(ds.LANDMASK)
-        lakemask = np.squeeze(ds.LAKEMASK)
+        sst_wrf = (np.squeeze(ds.SST) - 273.15) * 9/5 + 32  # convert K to degrees F
+        landmask = np.squeeze(ds.LANDMASK)  # 1=land, 0=water
+        lakemask = np.squeeze(ds.LAKEMASK)  # 1=lake, 0=non-lake
 
+        # convert values over land and lakes to nans
         ldmask = np.logical_and(landmask == 1, landmask == 1)
         sst_wrf.values[ldmask] = np.nan
 
@@ -144,11 +154,13 @@ def main(args):
         save_file = os.path.join(values['save'], f'ru-wrf_{model}_sst_{ymd}')
         kwargs = dict()
         kwargs['zoom_coastline'] = False
-
+        #kwargs['landcolor'] = 'none'
         if key == 'extent_bight_3km':
             save_file = os.path.join(values['save'], f'ru-wrf_{model}_sst_bight_{ymd}')
+            #kwargs['zoom_coastline'] = True
 
-        fig, axs = plt.subplots(2, 2, figsize=(9, 8), sharey=True, sharex=True, subplot_kw=dict(projection=ccrs.Mercator()))
+        fig, axs = plt.subplots(2, 2, figsize=(9, 8), sharey=True, sharex=True,
+                                subplot_kw=dict(projection=ccrs.Mercator()))
         ax1 = axs[0, 0]
         ax2 = axs[0, 1]
         ax3 = axs[1, 0]
@@ -168,6 +180,7 @@ def main(args):
         else:
             sst_rtg_sub = None
         sst_wrf_sub, lon_wrf, lat_wrf = subset_grid(values['lims'], sst_wrf, 'XLONG', 'XLAT')
+        #sst_gfs_sub, lon_gfs, lat_gfs = subset_grid(values['lims'], sst_gfs, 'lon_0', 'lat_0')
 
         kwargs['bottom_label'] = False
         hp.map_create(values['lims'], ax=ax1, **kwargs)
@@ -181,7 +194,7 @@ def main(args):
 
         contour_list = [5, 10, 15, 20, 25, 30]
         if type(goes_sub) == xr.core.dataarray.DataArray:
-            if np.sum(~np.isnan(goes_sub.values)) > 0:
+            if np.sum(~np.isnan(goes_sub.values)) > 0:  # check if the GOES-SF file has any data
                 pf.add_contours(ax1, lon_goes, lat_goes, goes_sub.values, contour_list)
         if type(sst_wrf_input_sub) == xr.core.dataarray.DataArray:
             pf.add_contours(ax2, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, contour_list)
@@ -196,25 +209,25 @@ def main(args):
         kwargs['cmap'] = cmap
         kwargs['title_pad'] = 8
         if type(goes_sub) == xr.core.dataarray.DataArray:
-            pf.plot_pcolormesh_panel(fig, ax1, lon_goes, lat_goes, kelvin_to_fahrenheit(goes_sub.values), **kwargs)
+            pf.plot_pcolormesh_panel(fig, ax1, lon_goes, lat_goes, goes_sub.values, **kwargs)
         else:
             ax1.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
         kwargs['panel_title'] = f'RTG'
         if type(sst_rtg_sub) == xr.core.dataarray.DataArray:
-            pf.plot_pcolormesh_panel(fig, ax3, lon_rtg, lat_rtg, kelvin_to_fahrenheit(sst_rtg_sub.values), **kwargs)
+            pf.plot_pcolormesh_panel(fig, ax3, lon_rtg, lat_rtg, sst_rtg_sub.values, **kwargs)
         else:
             ax3.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
         kwargs['panel_title'] = 'GOES-SF + RTG Composite'
-        kwargs['clab'] = 'SST (°F)'
+        kwargs['clab'] = 'SST (\N{DEGREE SIGN}F)'
         if type(sst_wrf_input_sub) == xr.core.dataarray.DataArray:
-            pf.plot_pcolormesh_panel(fig, ax2, lon_sst_wrf_input, lat_sst_wrf_input, kelvin_to_fahrenheit(sst_wrf_input_sub.values), **kwargs)
+            pf.plot_pcolormesh_panel(fig, ax2, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, **kwargs)
         else:
             ax2.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
-        kwargs['panel_title'] = 'RU-WRF Output (°F)'
-        pf.plot_pcolormesh_panel(fig, ax4, lon_wrf, lat_wrf, kelvin_to_fahrenheit(sst_wrf_sub.values), **kwargs)
+        kwargs['panel_title'] = 'RU-WRF Output'
+        pf.plot_pcolormesh_panel(fig, ax4, lon_wrf, lat_wrf, sst_wrf_sub.values, **kwargs)
 
         if model == '3km':
             plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.02, hspace=0.12)
@@ -222,6 +235,7 @@ def main(args):
             plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.2, hspace=0.12)
         plt.savefig(save_file, dpi=200)
         plt.close()
+
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Plot WRF SST inputs and output',
