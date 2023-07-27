@@ -101,7 +101,7 @@ def main(args):
     ds_sport = xr.open_dataset(sport_avhrr_file, engine='pynio')
     sst_sport = np.squeeze(ds_sport.sst.transpose())
 
-    vlims = [14, 30]
+    vlims = [10, 30]
     cmap = cmo.cm.thermal
     levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])  # levels every 1 degrees C
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
