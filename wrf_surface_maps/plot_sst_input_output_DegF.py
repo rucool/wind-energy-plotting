@@ -17,6 +17,9 @@ import functions.hurricanes_plotting as hp
 
 plt.rcParams.update({'font.size': 12})
 
+def kelvin_to_fahrenheit(kelvin):
+    return (kelvin - 273.15) * 9/5 + 32
+
 def subset_grid(ext, dataset, lon_name, lat_name):
     if len(np.shape(dataset[lon_name])) == 1:
         lonx, laty = np.meshgrid(dataset[lon_name], dataset[lat_name])
@@ -113,8 +116,8 @@ def main(args):
             if month in v['months']:
                 color_lims_celsius = v['color_lims']
                 color_lims_fahrenheit = (
-                    (color_lims_celsius[0] * 9/5) + 32,
-                    (color_lims_celsius[1] * 9/5) + 32
+                    kelvin_to_fahrenheit(color_lims_celsius[0]),
+                    kelvin_to_fahrenheit(color_lims_celsius[1])
                 )
 
     bins = color_lims_fahrenheit[1] - color_lims_fahrenheit[0]
@@ -193,25 +196,25 @@ def main(args):
         kwargs['cmap'] = cmap
         kwargs['title_pad'] = 8
         if type(goes_sub) == xr.core.dataarray.DataArray:
-            pf.plot_pcolormesh_panel(fig, ax1, lon_goes, lat_goes, goes_sub.values, **kwargs)
+            pf.plot_pcolormesh_panel(fig, ax1, lon_goes, lat_goes, kelvin_to_fahrenheit(goes_sub.values), **kwargs)
         else:
             ax1.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
         kwargs['panel_title'] = f'RTG'
         if type(sst_rtg_sub) == xr.core.dataarray.DataArray:
-            pf.plot_pcolormesh_panel(fig, ax3, lon_rtg, lat_rtg, sst_rtg_sub.values, **kwargs)
+            pf.plot_pcolormesh_panel(fig, ax3, lon_rtg, lat_rtg, kelvin_to_fahrenheit(sst_rtg_sub.values), **kwargs)
         else:
             ax3.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
         kwargs['panel_title'] = 'GOES-SF + RTG Composite'
         kwargs['clab'] = 'SST (°F)'
         if type(sst_wrf_input_sub) == xr.core.dataarray.DataArray:
-            pf.plot_pcolormesh_panel(fig, ax2, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, **kwargs)
+            pf.plot_pcolormesh_panel(fig, ax2, lon_sst_wrf_input, lat_sst_wrf_input, kelvin_to_fahrenheit(sst_wrf_input_sub.values), **kwargs)
         else:
             ax2.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
         kwargs['panel_title'] = 'RU-WRF Output (°F)'
-        pf.plot_pcolormesh_panel(fig, ax4, lon_wrf, lat_wrf, sst_wrf_sub.values, **kwargs)
+        pf.plot_pcolormesh_panel(fig, ax4, lon_wrf, lat_wrf, kelvin_to_fahrenheit(sst_wrf_sub.values), **kwargs)
 
         if model == '3km':
             plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.02, hspace=0.12)
