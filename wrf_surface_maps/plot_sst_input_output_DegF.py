@@ -113,16 +113,13 @@ def main(args):
         sst_rtg = None
     else:
         ds_rtg = xr.open_dataset(rtg_file, engine='pynio')
-        #sst_rtg = np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
-        sst_rtg = (np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15) * 9/5 + 32  # convert K to degrees F
+        sst_rtg = np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
 
     # # get GFS output (DISCLAIMER: I don't know which hour WRF uses so plotting 000Z for now)
     # ds_gfs = xr.open_dataset(gfs_file, engine='pynio')
     # sst_gfs = np.squeeze(ds_gfs.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
 
     # get colorbar limits from configuration file
-    # get colorbar limits from configuration file
-    
     configfile = cf.sst_surface_map_config()
     with open(configfile) as config:
         config_info = yaml.full_load(config)
@@ -141,7 +138,7 @@ def main(args):
         # get the appropriate WRF output SST (3km or 9km)
         wrf_file = glob.glob(os.path.join(values['wrfdir'], 'wrfproc_*_00Z_H000.nc'))[0]
         ds = xr.open_dataset(wrf_file)
-        sst_wrf = (np.squeeze(ds.SST) - 273.15) * 9/5 + 32  # convert K to degrees F
+        sst_wrf = np.squeeze(ds.SST) - 273.15  # convert K to degrees C
         landmask = np.squeeze(ds.LANDMASK)  # 1=land, 0=water
         lakemask = np.squeeze(ds.LAKEMASK)  # 1=lake, 0=non-lake
 
@@ -222,7 +219,7 @@ def main(args):
             ax3.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
         kwargs['panel_title'] = 'GOES-SF + RTG Composite'
-        kwargs['clab'] = 'SST (\N{DEGREE SIGN}F)'
+        kwargs['clab'] = 'SST (\N{DEGREE SIGN}C)'
         if type(sst_wrf_input_sub) == xr.core.dataarray.DataArray:
             pf.plot_pcolormesh_panel(fig, ax2, lon_sst_wrf_input, lat_sst_wrf_input, sst_wrf_input_sub.values, **kwargs)
         else:
