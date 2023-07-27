@@ -121,6 +121,8 @@ def main(args):
     # sst_gfs = np.squeeze(ds_gfs.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
 
     # get colorbar limits from configuration file
+    # get colorbar limits from configuration file
+    
     configfile = cf.sst_surface_map_config()
     with open(configfile) as config:
         config_info = yaml.full_load(config)
