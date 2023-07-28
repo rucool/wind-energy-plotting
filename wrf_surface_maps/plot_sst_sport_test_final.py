@@ -199,6 +199,8 @@ def main(args):
         plt.savefig(save_file, dpi=200)
         plt.close()
 
+        print('Plot generated')
+
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Plot WRF SST inputs and output',
