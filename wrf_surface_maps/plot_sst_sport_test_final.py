@@ -77,23 +77,35 @@ def main(args):
 
     # convert values over land and lakes to nans
     ldmask = np.logical_and(landmask == 1, landmask == 1)
-    #sst_wrf.values[ldmask] = np.nan
+    sst_wrf.values[ldmask] = np.nan  # Moved this line inside the try-except block
 
     lkmask = np.logical_and(lakemask == 1, lakemask == 1)
-    #sst_wrf.values[lkmask] = np.nan
+    sst_wrf.values[lkmask] = np.nan  # Moved this line inside the try-except block
 
     # get satellite input SST
-    ds_sf = xr.open_dataset(sat_file)
-    sst_sf = np.squeeze(ds_sf.sst)
+    try:
+        ds_sf = xr.open_dataset(sat_file)
+        sst_sf = np.squeeze(ds_sf.sst)
+    except FileNotFoundError:
+        print(f'No such file or directory: {sat_file}')
+        sst_sf = None
 
-    # get the WRF grib file)
-    ds_SST_WRF = xr.open_dataset(SST_WRF_file, engine='pynio')
-    SST_WRF_grib = np.squeeze(ds_SST_WRF.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
+    # get the WRF grib file
+    try:
+        ds_SST_WRF = xr.open_dataset(SST_WRF_file, engine='pynio')
+        SST_WRF_grib = np.squeeze(ds_SST_WRF.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
+    except FileNotFoundError:
+        print(f'No such file or directory: {SST_WRF_file}')
+        SST_WRF_grib = None
 
     # get GFS output (DISCLAIMER: I don't know which hour WRF uses so plotting 000Z for now)
-    ds_sport = xr.open_dataset(sport_avhrr_file, engine='pynio')
-    sst_sport = np.squeeze(ds_sport.sst.transpose())
-
+    try:
+        ds_sport = xr.open_dataset(sport_avhrr_file, engine='pynio')
+        sst_sport = np.squeeze(ds_sport.sst.transpose())
+    except FileNotFoundError:
+        print(f'No such file or directory: {sport_avhrr_file}')
+        sst_sport = None
+        
     vlims = [5, 30]
     cmap = cmo.cm.thermal
     levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])  # levels every 1 degrees C
