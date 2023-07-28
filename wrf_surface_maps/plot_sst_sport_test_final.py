@@ -61,8 +61,17 @@ def main(args):
 
     wrf_file = glob.glob(os.path.join(wrf_dir, 'wrfproc_*_00Z_H000.nc'))[0]
     sat_file = os.path.join(sst_inputs_dir, 'SST_raw_yesterday.nc')
-    SST_WRF_file = glob.glob(os.path.join(sst_inputs_dir, f'SST_WRF_{ymd}.grb'))[0]
-    sport_avhrr_file = glob.glob(os.path.join(sport_avhrr_dir, f'procdate_{sport_dd}*.nc'))[0]
+    try:
+        SST_WRF_file = glob.glob(os.path.join(sst_inputs_dir, f'SST_WRF_{ymd}.grb'))[0]
+    except IndexError:
+        print(f'No such file or directory: SST_WRF_{ymd}.grb')
+        sys.exit(1)
+
+    try:
+        sport_avhrr_file = glob.glob(os.path.join(sport_avhrr_dir, f'procdate_{sport_dd}*.nc'))[0]
+    except IndexError:
+        print(f'No such file or directory: procdate_{sport_dd}*.nc')
+        sys.exit(1)
 
     save_dir_zoom_out = os.path.join(save_dir, f'{str(yr)}_sport', 'zoom_out')
     save_dir_zoom_in = os.path.join(save_dir, f'{str(yr)}_sport', 'zoom_in')
