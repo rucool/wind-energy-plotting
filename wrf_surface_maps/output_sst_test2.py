@@ -119,30 +119,12 @@ def main(args):
     # ds_gfs = xr.open_dataset(gfs_file, engine='pynio')
     # sst_gfs = np.squeeze(ds_gfs.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
 
-     # Explicitly set vlims to [5, 30]
+
     vlims = [5, 30]
-    
-    # Set colormap and levels based on vlims
     cmap = cmo.cm.thermal
-    bins = vlims[1] - vlims[0]
-    levels = MaxNLocator(nbins=bins).tick_values(vlims[0], vlims[1])
+    levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])  # levels every 1 degrees C
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
-    
-    # Load colormap and levels from the configuration file
-    configfile = cf.sst_surface_map_config()
-    with open(configfile) as config:
-        config_info = yaml.full_load(config)
-        for k, v in config_info.items():
-            if month in v['months']:
-                color_lims = v['color_lims']
-    
-    # Set vlims (value limits) to be the same as color_lims
-    vlims = color_lims
-    
-    bins = vlims[1] - vlims[0]
-    cmap = cmo.cm.thermal
-    levels = MaxNLocator(nbins=bins).tick_values(vlims[0], vlims[1])
-    norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
+    main_title = f'RU-WRF Sea Surface Temperature: {pd.to_datetime(ymd).strftime("%Y-%m-%d")}'
     
     for key, values in extents.items():
         model = key.split("_")[-1]
