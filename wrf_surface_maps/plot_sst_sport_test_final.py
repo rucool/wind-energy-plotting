@@ -104,7 +104,7 @@ def main(args):
     try:
         ds_SST_WRF = xr.open_dataset(SST_WRF_file, engine='pynio')
         SST_WRF_grib = np.squeeze(ds_SST_WRF.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
-    except FileNotFoundError:
+    except:
         print(f'No such file or directory: {SST_WRF_file}')
         SST_WRF_grib = None
 
@@ -112,7 +112,7 @@ def main(args):
     try:
         ds_sport = xr.open_dataset(sport_avhrr_file, engine='pynio')
         sst_sport = np.squeeze(ds_sport.sst.transpose())
-    except FileNotFoundError:
+    except:
         print(f'No such file or directory: {sport_avhrr_file}')
         sst_sport = None
         
