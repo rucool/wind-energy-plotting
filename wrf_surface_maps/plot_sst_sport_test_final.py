@@ -108,7 +108,7 @@ def main(args):
         if key == 'extent_bight':
             save_file = os.path.join(save_dir_zoom_in, f'ru-wrf_sst_sport_bight_{ymd}')
             #kwargs['zoom_coastline'] = True
-
+        
         fig, axs = plt.subplots(2, 2, figsize=(9, 8), sharey=True, sharex=True,
                                 subplot_kw=dict(projection=ccrs.Mercator()))
         ax1 = axs[0, 0]
@@ -116,12 +116,12 @@ def main(args):
         ax3 = axs[1, 0]
         ax4 = axs[1, 1]
         fig.suptitle(main_title, fontsize=16, y=.98)
-
+        
         sst_wrf_sub, lon_wrf, lat_wrf = subset_grid(extent, sst_wrf, 'XLONG', 'XLAT')
         sst_sf_sub, lon_sf, lat_sf = subset_grid(extent, sst_sf, 'lon', 'lat')
         SST_WRF_grib_sub, lon_SST_WRF_grib, lat_SST_WRF_grib = subset_grid(extent, SST_WRF_grib, 'lon_0', 'lat_0')
         sst_sport_sub, lon_sport, lat_sport = subset_grid(extent, sst_sport, 'lon', 'lat')
-
+        
         kwargs['bottom_label'] = False
         hp.map_create(extent, ax=ax1, **kwargs)
         kwargs['bottom_label'] = True
@@ -131,37 +131,49 @@ def main(args):
         hp.map_create(extent, ax=ax2, **kwargs)
         kwargs['bottom_label'] = True
         hp.map_create(extent, ax=ax4, **kwargs)
-
-        contour_list = [10,15, 20, 25, 30]
+        
+        contour_list = [10, 15, 20, 25, 30]
         try:
             pf.add_contours(ax1, lon_sf, lat_sf, sst_sf_sub.values, contour_list)
         except TypeError:
             sst_sf = np.squeeze(ds_sf.sst).transpose()
             sst_sf_sub, lon_sf, lat_sf = subset_grid(extent, sst_sf, 'lon', 'lat')
             pf.add_contours(ax1, lon_sf, lat_sf, sst_sf_sub.values, contour_list)
-
+        
         pf.add_contours(ax2, lon_SST_WRF_grib, lat_SST_WRF_grib, SST_WRF_grib_sub.values, contour_list)
-        pf.add_contours(ax3, lon_sport, lat_sport, sst_sport_sub.values, contour_list)
+        
+        try:
+            pf.add_contours(ax3, lon_sport, lat_sport, sst_sport_sub.values, contour_list)
+        except TypeError:
+            sst_sport = np.squeeze(ds_sport.sst.transpose())
+            sst_sport_sub, lon_sport, lat_sport = subset_grid(extent, sst_sport, 'lon', 'lat')
+            pf.add_contours(ax3, lon_sport, lat_sport, sst_sport_sub.values, contour_list)
+        
         pf.add_contours(ax4, lon_wrf, lat_wrf, sst_wrf_sub.values, contour_list)
-
-        kwargs = dict()
+        
         kwargs['panel_title'] = 'SST_raw_yesterday.nc'
         kwargs['norm_clevs'] = norm
         kwargs['extend'] = 'both'
         kwargs['cmap'] = cmap
         kwargs['title_pad'] = 8
-        pf.plot_pcolormesh_panel(fig, ax1, lon_sf, lat_sf, sst_sf_sub.values, **kwargs)
-
+        try:
+            pf.plot_pcolormesh_panel(fig, ax1, lon_sf, lat_sf, sst_sf_sub.values, **kwargs)
+        except Exception as e:
+            print(f"Error plotting satellite panel: {e}")
+        
         kwargs['panel_title'] = f'Sport/AVHRR {sport_dd}'
-        pf.plot_pcolormesh_panel(fig, ax3, lon_sport, lat_sport, sst_sport_sub.values, **kwargs)
-
+        try:
+            pf.plot_pcolormesh_panel(fig, ax3, lon_sport, lat_sport, sst_sport_sub.values, **kwargs)
+        except Exception as e:
+            print(f"Error plotting Sport/AVHRR panel: {e}")
+        
         kwargs['panel_title'] = f'SST_WRF_{ymd}.grb'
         kwargs['clab'] = 'SST (\N{DEGREE SIGN}C)'
         pf.plot_pcolormesh_panel(fig, ax2, lon_SST_WRF_grib, lat_SST_WRF_grib, SST_WRF_grib_sub.values, **kwargs)
-
+        
         kwargs['panel_title'] = 'RU-WRF Output'
         pf.plot_pcolormesh_panel(fig, ax4, lon_wrf, lat_wrf, sst_wrf_sub.values, **kwargs)
-
+        
         plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.02, hspace=0.12)
         plt.savefig(save_file, dpi=200)
         plt.close()
