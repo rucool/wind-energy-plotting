@@ -65,13 +65,14 @@ def main(args):
         SST_WRF_file = glob.glob(os.path.join(sst_inputs_dir, f'SST_WRF_{ymd}.grb'))[0]
     except IndexError:
         print(f'No such file or directory: SST_WRF_{ymd}.grb')
+        SST_WRF_file = 'no_file'
         
 
     try:
         sport_avhrr_file = glob.glob(os.path.join(sport_avhrr_dir, f'procdate_{sport_dd}*.nc'))[0]
     except IndexError:
         print(f'No such file or directory: procdate_{sport_dd}*.nc')
-        
+        sport_avhrr_file = 'no_file'
 
     save_dir_zoom_out = os.path.join(save_dir, f'{str(yr)}_sport', 'zoom_out')
     save_dir_zoom_in = os.path.join(save_dir, f'{str(yr)}_sport', 'zoom_in')
