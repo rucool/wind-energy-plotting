@@ -138,12 +138,24 @@ def main(args):
         ax3 = axs[1, 0]
         ax4 = axs[1, 1]
         fig.suptitle(main_title, fontsize=16, y=.98)
-        
-        sst_wrf_sub, lon_wrf, lat_wrf = subset_grid(extent, sst_wrf, 'XLONG', 'XLAT')
-        sst_sf_sub, lon_sf, lat_sf = subset_grid(extent, sst_sf, 'lon', 'lat')
-        SST_WRF_grib_sub, lon_SST_WRF_grib, lat_SST_WRF_grib = subset_grid(extent, SST_WRF_grib, 'lon_0', 'lat_0')
-        sst_sport_sub, lon_sport, lat_sport = subset_grid(extent, sst_sport, 'lon', 'lat')
-        
+
+        if type(sst_wrf) == xr.core.dataarray.DataArray:
+            sst_wrf_sub, lon_wrf, lat_wrf = subset_grid(extent, sst_wrf, 'XLONG', 'XLAT')
+        else:
+             sst_wrf_sub = None
+        if type(sst_sf) == xr.core.dataarray.DataArray:
+            sst_sf_sub, lon_sf, lat_sf = subset_grid(extent, sst_sf, 'lon', 'lat')
+        else:
+            sst_sf_sub = None
+        if type(SST_WRF_grib) == xr.core.dataarray.DataArray:
+            SST_WRF_grib_sub, lon_SST_WRF_grib, lat_SST_WRF_grib = subset_grid(extent, SST_WRF_grib, 'lon_0', 'lat_0')
+        else:
+            SST_WRF_grib_sub = None
+        if type(sst_sport) == xr.core.dataarray.DataArray:
+            sst_sport_sub, lon_sport, lat_sport = subset_grid(extent, sst_sport, 'lon', 'lat')
+        else:
+            sst_sport_sub = None
+            
         kwargs['bottom_label'] = False
         hp.map_create(extent, ax=ax1, **kwargs)
         kwargs['bottom_label'] = True
