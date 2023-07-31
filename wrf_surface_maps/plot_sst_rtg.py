@@ -93,7 +93,6 @@ def main(args):
         main_title = f'RTG Sea Surface Temperature {model}: {pd.to_datetime(ymd).strftime("%Y-%m-%d")}'
         save_file = os.path.join(values['save'], f'RTG_ru-wrf_{model}_sst_{ymd}')
         kwargs = dict()
-        kwargs['zoom_coastline'] = False
 
         fig, ax = plt.subplots(figsize=(9, 8), subplot_kw=dict(projection=ccrs.Mercator()))
         fig.suptitle(main_title, fontsize=16, y=.98)
