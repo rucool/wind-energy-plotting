@@ -65,7 +65,7 @@ def main(args):
     extents = dict(
         extent_9km=dict(
             lims=extent_9km,
-            save=save_dir_9km_zoom_out,
+            save=save_dir_rtg,
         )
     )
 
@@ -82,23 +82,16 @@ def main(args):
         ds_rtg = xr.open_dataset(rtg_file, engine='pynio')
         sst_rtg = np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
 
-    # get colorbar limits from configuration file
-    configfile = cf.sst_surface_map_config()
-    with open(configfile) as config:
-        config_info = yaml.full_load(config)
-        for k, v in config_info.items():
-            if month in v['months']:
-                color_lims = v['color_lims']
-
+    vlims = [5, 30]
     bins = color_lims[1] - color_lims[0]
     cmap = cmo.cm.thermal
-    levels = MaxNLocator(nbins=bins).tick_values(color_lims[0], color_lims[1])
+    levels = MaxNLocator(nbins=bins).tick_values(vlims[0], vlims[1])
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
     for key, values in extents.items():
         model = key.split("_")[-1]
 
-        main_title = f'RU-WRF Sea Surface Temperature {model}: {pd.to_datetime(ymd).strftime("%Y-%m-%d")}'
+        main_title = f'RTG Sea Surface Temperature {model}: {pd.to_datetime(ymd).strftime("%Y-%m-%d")}'
         save_file = os.path.join(values['save'], f'ru-wrf_{model}_sst_{ymd}')
         kwargs = dict()
         kwargs['zoom_coastline'] = False
