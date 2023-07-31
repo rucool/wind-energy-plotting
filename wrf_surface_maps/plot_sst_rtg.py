@@ -84,7 +84,7 @@ def main(args):
 
     vlims = [5, 30]
     cmap = cmo.cm.thermal
-    levels = MaxNLocator(nbins=bins).tick_values(vlims[0], vlims[1])
+    levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1]) 
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
     for key, values in extents.items():
