@@ -48,4 +48,75 @@ def subset_grid(ext, dataset, lon_name, lat_name):
     return data_sub, lon, lat
 
 
+def main(args):
+    ymd = args.ymd
+    save_dir = args.save_dir
 
+    yr = pd.to_datetime(ymd).year
+    ym = ymd[0:6]
+    month = pd.to_datetime(ymd).month
+
+    save_dir_rtg = os.path.join(save_dir, str(yr), 'rtg_only','ym')
+    os.makedirs(save_dir_rtg, exist_ok=True)
+
+    sst_inputs_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/sst-input', ymd)
+
+    extent_9km = [-80, -60, 31, 46]
+    extents = dict(
+        extent_9km=dict(
+            lims=extent_9km,
+            save=save_dir_9km_zoom_out,
+        )
+    )
+
+    try:
+        rtg_file = glob.glob(os.path.join(sst_inputs_dir, 'rtgssthr_*.grib2'))[0]
+    except IndexError:
+        rtg_file = 'no_file'
+        
+    # get RTG file (file is from the previous day for the WRF input)
+    if rtg_file == 'no_file':
+        print(f'No such file or directory: {rtg_file}')
+        sst_rtg = None
+    else:
+        ds_rtg = xr.open_dataset(rtg_file, engine='pynio')
+        sst_rtg = np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
+
+    # get colorbar limits from configuration file
+    configfile = cf.sst_surface_map_config()
+    with open(configfile) as config:
+        config_info = yaml.full_load(config)
+        for k, v in config_info.items():
+            if month in v['months']:
+                color_lims = v['color_lims']
+
+    bins = color_lims[1] - color_lims[0]
+    cmap = cmo.cm.thermal
+    levels = MaxNLocator(nbins=bins).tick_values(color_lims[0], color_lims[1])
+    norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
+
+    for key, values in extents.items():
+        model = key.split("_")[-1]
+
+        main_title = f'RU-WRF Sea Surface Temperature {model}: {pd.to_datetime(ymd).strftime("%Y-%m-%d")}'
+        save_file = os.path.join(values['save'], f'ru-wrf_{model}_sst_{ymd}')
+        kwargs = dict()
+        kwargs['zoom_coastline'] = False
+
+        fig, ax = plt.subplots(figsize=(9, 8), subplot_kw=dict(projection=ccrs.Mercator()))
+        fig.suptitle(main_title, fontsize=16, y=.98)
+
+        if type(sst_rtg) == xr.core.dataarray.DataArray:
+            sst_rtg_sub, lon_rtg, lat_rtg = subset_grid(values['lims'], sst_rtg, 'lon_0', 'lat_0')
+        else:
+            sst_rtg_sub = None
+
+        kwargs['panel_title'] = f'RTG'
+        if type(sst_rtg_sub) == xr.core.dataarray.DataArray:
+            pf.plot_pcolormesh_panel(fig, ax, lon_rtg, lat_rtg, sst_rtg_sub.values, **kwargs)
+        else:
+            ax.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
+
+        plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.02, hspace=0.12)
+        plt.savefig(save_file, dpi=200)
+        plt.close()
