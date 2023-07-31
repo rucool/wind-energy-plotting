@@ -113,6 +113,7 @@ def main(args):
         plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.02, hspace=0.12)
         plt.savefig(save_file, dpi=200)
         plt.close()
+        print("plot saved")
 
 
 if __name__ == '__main__':
