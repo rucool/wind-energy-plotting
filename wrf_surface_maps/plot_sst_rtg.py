@@ -113,3 +113,20 @@ def main(args):
         plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0.02, hspace=0.12)
         plt.savefig(save_file, dpi=200)
         plt.close()
+
+
+if __name__ == '__main__':
+    arg_parser = argparse.ArgumentParser(description='Plot WRF SST inputs and output',
+                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    arg_parser.add_argument('ymd',
+                            type=str,
+                            help='Year-month-day to plot in the format YYYYmmdd (e.g. 20220101.')
+
+    arg_parser.add_argument('-save_dir',
+                            default='/www/web/rucool/windenergy/ru-wrf/images/daily/sst-input',
+                            type=str,
+                            help='Full directory path to save output plots.')
+
+    parsed_args = arg_parser.parse_args()
+    sys.exit(main(parsed_args))
