@@ -83,7 +83,6 @@ def main(args):
         sst_rtg = np.squeeze(ds_rtg.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
 
     vlims = [5, 30]
-    bins = color_lims[1] - color_lims[0]
     cmap = cmo.cm.thermal
     levels = MaxNLocator(nbins=bins).tick_values(vlims[0], vlims[1])
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
