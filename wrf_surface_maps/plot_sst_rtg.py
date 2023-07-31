@@ -92,7 +92,7 @@ def main(args):
         model = key.split("_")[-1]
 
         main_title = f'RTG Sea Surface Temperature {model}: {pd.to_datetime(ymd).strftime("%Y-%m-%d")}'
-        save_file = os.path.join(values['save'], f'ru-wrf_{model}_sst_{ymd}')
+        save_file = os.path.join(values['save'], f'RTG_ru-wrf_{model}_sst_{ymd}')
         kwargs = dict()
         kwargs['zoom_coastline'] = False
 
