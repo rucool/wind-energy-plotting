@@ -53,7 +53,7 @@ def main(args):
     os.makedirs(save_dir, exist_ok=True)
     save_file = os.path.join(save_dir, f'ru-wrf_sst_sportavhrr_{ymd}')
     
-    sst_inputs_dir = os.path.join('/users/jameskim/Documents/rucool/SSTcodetest',ymd)
+    sst_inputs_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/sst-input',ymd)
     sat_file = os.path.join(sst_inputs_dir, 'SST_raw_yesterday.nc')
 
     extent_3km, __, __, __ = cf.define_axis_limits('3km')
