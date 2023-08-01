@@ -56,6 +56,7 @@ def main(args):
 
 
     save_dir = os.path.join(save_dir, str(yr), 'rtg_only',ym)
+    os.makedirs(save_dir, exist_ok=True)
     save_file = os.path.join(save_dir, f'ru-wrf_sst_rtg_{ymd}')
 
 
