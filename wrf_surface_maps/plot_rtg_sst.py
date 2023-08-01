@@ -55,7 +55,8 @@ def main(args):
     month = pd.to_datetime(ymd).month
 
 
-    save_dir = save_dir_rtg = os.path.join(save_dir, str(yr), 'rtg_only',ym)
+    save_dir = os.path.join(save_dir, str(yr), 'rtg_only',ym)
+    os.makedirs(save_dir, exist_ok=True)
     save_file = os.path.join(save_dir, f'ru-wrf_sst_rtg_{ymd}')
 
 
@@ -115,8 +116,11 @@ def main(args):
     else:
         ax.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
-    plt.savefig(save_file, dpi=200)
-    plt.close()
+    try:
+        plt.savefig(save_file, dpi=200)
+    except Exception as e:
+        print(f"Error occurred while saving the file: {e}")
+        plt.close()
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Plot WRF SST RTG input',
