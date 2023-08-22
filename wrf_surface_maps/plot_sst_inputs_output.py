@@ -131,7 +131,7 @@ def main(args):
     # get colorbar limits from configuration file
     #configfile = cf.sst_surface_map_config()
     #with open(configfile) as config:
-        config_info = yaml.full_load(config)
+        #config_info = yaml.full_load(config)
         #for k, v in config_info.items():
             #if month in v['months']:
                 #color_lims = v['color_lims']
