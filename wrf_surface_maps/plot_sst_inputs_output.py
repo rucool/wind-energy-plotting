@@ -129,16 +129,18 @@ def main(args):
     # sst_gfs = np.squeeze(ds_gfs.TMP_P0_L1_GLL0) - 273.15  # convert K to degrees C
 
     # get colorbar limits from configuration file
-    configfile = cf.sst_surface_map_config()
-    with open(configfile) as config:
+    #configfile = cf.sst_surface_map_config()
+    #with open(configfile) as config:
         config_info = yaml.full_load(config)
-        for k, v in config_info.items():
-            if month in v['months']:
-                color_lims = v['color_lims']
+        #for k, v in config_info.items():
+            #if month in v['months']:
+                #color_lims = v['color_lims']
 
-    bins = color_lims[1] - color_lims[0]
+    #bins = color_lims[1] - color_lims[0]
+    vlims = [5,30]
     cmap = cmo.cm.thermal
-    levels = MaxNLocator(nbins=bins).tick_values(color_lims[0], color_lims[1])
+    #levels = MaxNLocator(nbins=bins).tick_values(color_lims[0], color_lims[1])
+    levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
     for key, values in extents.items():
