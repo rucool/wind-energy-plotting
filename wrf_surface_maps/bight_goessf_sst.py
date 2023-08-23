@@ -119,8 +119,8 @@ def main(args):
                 pf.plot_pcolormesh_panel(fig, ax, lon_goes, lat_goes, goes_sub.values, **kwargs)
     plt.savefig(save_file, dpi=200)
     plt.close()
-
- if __name__ == '__main__':
+    
+if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Plot GOES Spike SST',
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
