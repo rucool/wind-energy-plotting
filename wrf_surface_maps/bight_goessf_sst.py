@@ -62,8 +62,7 @@ def main(args):
     save_file = os.path.join(save_dir, f'ru-wrf_sst_goes_{ymd}')
 
     extent_3km, __, __, __ = cf.define_axis_limits('bight')
-
-    save_dir = '/users/jameskim/Documents/rucool/SSTcodetest'
+    
     save_file = os.path.join(save_dir, f'ru-wrf_sst_goes_spike_filter_{ymd}.png')  # Modified save_file name
 
     yr = pd.to_datetime(ymd).year
@@ -71,7 +70,7 @@ def main(args):
     month = pd.to_datetime(ymd).month
 
 
-    goes_sf_dir = os.path.join('/users/jameskim/documents/rucool/WRF/wrf_SST/spike', f'{yr}')
+    goes_sf_dir = os.path.join('/home/coolgroup/bpu/wrf/data/goes_composites/composites', f'{yr}')
     goes_sf_file = os.path.join(goes_sf_dir, f'goes_stacked_composites_{ymd}T0000.nc')
 
     # get GOES Spike Filter file
