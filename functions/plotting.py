@@ -204,6 +204,6 @@ def plot_pcolormesh_panel(fig, ax, lon_data, lat_data, var_data, panel_title=Non
 
     if clab:
         fig.add_axes(cax)
-        cb = plt.colorbar(h, cax=cax, extend=extend)
+        cb = plt.colorbar(h, cax=cax, extend='neither')
         cb.set_label(label=clab, fontsize=14)
         cb.ax.tick_params(labelsize=12)
