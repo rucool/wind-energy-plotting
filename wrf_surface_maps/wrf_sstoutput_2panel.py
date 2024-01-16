@@ -104,14 +104,14 @@ def main(args):
     cf = axs[0].pcolormesh(lon_wrf, lat_wrf, sst_wrf_sub, norm=norm, cmap=cmap, transform=ccrs.PlateCarree())
     axs[0].coastlines()
     axs[0].set_title('Upwelling')
-    fig.colorbar(cf, ax=axs[0], orientation='vertical', label='SST (\N{DEGREE SIGN}C)')
+    fig.colorbar(cf, ax=axs[0], orientation='vertical', label='SST (\N{DEGREE SIGN}C)',shrink=0.75, aspect=20, pad=0.05)
 
 # Plotting for the second dataset
     new_sst_wrf_sub, new_lon_wrf, new_lat_wrf = subset_grid(extent, new_sst_wrf, 'XLONG', 'XLAT')
     cf2 = axs[1].pcolormesh(new_lon_wrf, new_lat_wrf, new_sst_wrf_sub, norm=norm, cmap=cmap, transform=ccrs.PlateCarree())
     axs[1].coastlines()
     axs[1].set_title('No Upwelling')
-    fig.colorbar(cf2, ax=axs[1], orientation='vertical', label='SST (\N{DEGREE SIGN}C)')
+    fig.colorbar(cf2, ax=axs[1], orientation='vertical', label='SST (\N{DEGREE SIGN}C)',shrink=0.75, aspect=20, pad=0.05)
 
     # Save the figure with two panels
     plt.savefig(os.path.join(save_dir_wrf, f'ru-wrf_sst_comparison_{ymd}.png'), dpi=200)
