@@ -87,6 +87,7 @@ def main(args):
     levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
+
     sst_wrf_sub, lon_wrf, lat_wrf = subset_grid(extent, sst_wrf, 'XLONG', 'XLAT')
     pf.plot_pcolormesh_panel(fig, ax, lon_wrf, lat_wrf, sst_wrf_sub.values, 
                              panel_title='RU-WRF Output', 
@@ -94,6 +95,16 @@ def main(args):
                              extend='both', 
                              cmap=cmap, 
                              clab='SST (\N{DEGREE SIGN}C)')
+
+    # Overlay land
+    land_color = 'tan'  # You can choose any color you like
+    landmask = np.squeeze(ds.LANDMASK)
+    ax.pcolormesh(lon_wrf, lat_wrf, landmask, color=land_color, transform=ccrs.PlateCarree(), alpha=0.5)
+
+#  Similarly, overlay lakes if needed
+    lake_color = 'blue'
+    lakemask = np.squeeze(ds.LAKEMASK)
+    ax.pcolormesh(lon_wrf, lat_wrf, lakemask, color=lake_color, transform=ccrs.PlateCarree(), alpha=0.5)
 
     plt.savefig(os.path.join(save_dir_wrf, f'ru-wrf_sst_{ymd}.png'), dpi=200)
     plt.close()
