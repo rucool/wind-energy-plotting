@@ -69,7 +69,7 @@ def main(args):
     extent = [-80, -60, 31, 46]  # Define the geographical extent as needed
 
     # get the WRF output SST
-    wrf_file = glob.glob(os.path.join(wrf_dir, 'wrfproc_1km_{ymd}_00Z_H000.nc'))[0]
+    wrf_file = glob.glob(os.path.join(wrf_dir, f'wrfproc_1km_{ymd}_00Z_H000.nc'))[0]
     ds = xr.open_dataset(wrf_file)
     sst_wrf = np.squeeze(ds.SST) - 273.15  # convert K to degrees C
 
