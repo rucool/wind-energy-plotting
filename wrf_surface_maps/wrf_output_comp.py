@@ -64,7 +64,7 @@ def main(args):
     save_dir_wrf = os.path.join(save_dir, str(yr), 'wrf_output', ym)
     os.makedirs(save_dir_wrf, exist_ok=True)
 
-    wrf_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed/1km_wf2km_nyb', ymd)  # Update the path as needed
+    wrf_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed/1km_wf2km_nyb/', ymd)  # Update the path as needed
 
     extent = [-80, -60, 31, 46]  # Define the geographical extent as needed
 
