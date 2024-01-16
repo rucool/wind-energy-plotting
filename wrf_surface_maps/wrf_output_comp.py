@@ -112,7 +112,7 @@ def main(args):
     # Overlay land
     land_color = 'tan'  # Replace 'tan' with any color you prefer for land
     ax.pcolormesh(lon_wrf, lat_wrf, landmask, color=land_color, transform=ccrs.PlateCarree(), zorder=0)
-
+    ax.contour(lon_wrf, lat_wrf, landmask, levels=[0.5], colors='black', transform=ccrs.PlateCarree(), zorder=4)
 
     plt.savefig(os.path.join(save_dir_wrf, f'ru-wrf_sst_{ymd}.png'), dpi=200)
     plt.close()
