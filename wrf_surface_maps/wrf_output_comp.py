@@ -75,6 +75,16 @@ def main(args):
     print(wrf_file)
     ds = xr.open_dataset(wrf_file)
     sst_wrf = np.squeeze(ds.SST) - 273.15  # convert K to degrees C
+    
+    landmask = np.squeeze(ds.LANDMASK)  # 1=land, 0=water
+    lakemask = np.squeeze(ds.LAKEMASK)  # 1=lake, 0=non-lake
+
+        # convert values over land and lakes to nans
+    ldmask = np.logical_and(landmask == 1, landmask == 1)
+    sst_wrf.values[ldmask] = np.nan
+
+    lkmask = np.logical_and(lakemask == 1, lakemask == 1)
+    sst_wrf.values[lkmask] = np.nan
 
     # Setup plot
     fig, ax = plt.subplots(figsize=(9, 8), subplot_kw=dict(projection=ccrs.Mercator()))
@@ -95,16 +105,6 @@ def main(args):
                              extend='both', 
                              cmap=cmap, 
                              clab='SST (\N{DEGREE SIGN}C)')
-
-    # Overlay land
-    land_color = 'tan'  # You can choose any color you like
-    landmask = np.squeeze(ds.LANDMASK)
-    ax.pcolormesh(lon_wrf, lat_wrf, landmask, color=land_color, transform=ccrs.PlateCarree(), alpha=0.5)
-
-#  Similarly, overlay lakes if needed
-    lake_color = 'blue'
-    lakemask = np.squeeze(ds.LAKEMASK)
-    ax.pcolormesh(lon_wrf, lat_wrf, lakemask, color=lake_color, transform=ccrs.PlateCarree(), alpha=0.5)
 
     plt.savefig(os.path.join(save_dir_wrf, f'ru-wrf_sst_{ymd}.png'), dpi=200)
     plt.close()
