@@ -51,9 +51,10 @@ def main(args):
     os.makedirs(save_dir_wrf, exist_ok=True)
 
     wrf_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed_windturbs/1km_wf2km_nyb', ymd)  # Update the path as needed
-    new_data_dir = 'path/to/your/new/data/directory'  # Update this path for the new dataset
+    new_data_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed_windturbs/1km_wf2km_nyb_modsst',ymd)  # Update this path for the new dataset
 
     print(wrf_dir)
+    print(new_data_dir)
 
     extent = [-80, -60, 31, 46]  # Define the geographical extent as needed
 
@@ -102,14 +103,14 @@ def main(args):
     sst_wrf_sub, lon_wrf, lat_wrf = subset_grid(extent, sst_wrf, 'XLONG', 'XLAT')
     cf = axs[0].pcolormesh(lon_wrf, lat_wrf, sst_wrf_sub, norm=norm, cmap=cmap, transform=ccrs.PlateCarree())
     axs[0].coastlines()
-    axs[0].set_title('First Dataset SST')
+    axs[0].set_title('Upwelling')
     fig.colorbar(cf, ax=axs[0], orientation='vertical', label='SST (\N{DEGREE SIGN}C)')
 
 # Plotting for the second dataset
     new_sst_wrf_sub, new_lon_wrf, new_lat_wrf = subset_grid(extent, new_sst_wrf, 'XLONG', 'XLAT')
     cf2 = axs[1].pcolormesh(new_lon_wrf, new_lat_wrf, new_sst_wrf_sub, norm=norm, cmap=cmap, transform=ccrs.PlateCarree())
     axs[1].coastlines()
-    axs[1].set_title('Second Dataset SST')
+    axs[1].set_title('No Upwelling')
     fig.colorbar(cf2, ax=axs[1], orientation='vertical', label='SST (\N{DEGREE SIGN}C)')
 
     # Save the figure with two panels
