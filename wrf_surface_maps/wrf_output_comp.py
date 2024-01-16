@@ -66,10 +66,13 @@ def main(args):
 
     wrf_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed/1km_wf2km_nyb', ymd)  # Update the path as needed
 
+    print(wrf_dir)
+
     extent = [-80, -60, 31, 46]  # Define the geographical extent as needed
 
     # get the WRF output SST
-    wrf_file = glob.glob(os.path.join(wrf_dir, f'wrfproc_1km_{ymd}_00Z_H000.nc'))[0]
+    wrf_file = glob.glob(os.path.join(wrf_dir, 'wrfproc_1km_*_00Z_H000.nc'))[0]
+    print(wrf_file)
     ds = xr.open_dataset(wrf_file)
     sst_wrf = np.squeeze(ds.SST) - 273.15  # convert K to degrees C
 
