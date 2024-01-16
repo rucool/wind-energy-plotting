@@ -105,6 +105,8 @@ def main(args):
     axs[0].coastlines()
     axs[0].set_title('Upwelling')
     fig.colorbar(cf, ax=axs[0], orientation='vertical', label='SST (\N{DEGREE SIGN}C)',shrink=0.75, aspect=20, pad=0.05)
+    land_color = 'tan'  # Replace 'tan' with any color you prefer for land
+    axs[0].pcolormesh(lon_wrf, lat_wrf, landmask, color=land_color, transform=ccrs.PlateCarree(), zorder=0)
 
 # Plotting for the second dataset
     new_sst_wrf_sub, new_lon_wrf, new_lat_wrf = subset_grid(extent, new_sst_wrf, 'XLONG', 'XLAT')
@@ -112,6 +114,9 @@ def main(args):
     axs[1].coastlines()
     axs[1].set_title('No Upwelling')
     fig.colorbar(cf2, ax=axs[1], orientation='vertical', label='SST (\N{DEGREE SIGN}C)',shrink=0.75, aspect=20, pad=0.05)
+   
+    land_color = 'tan'  # Replace 'tan' with any color you prefer for land
+    axs[1].pcolormesh(lon_wrf, lat_wrf, landmask, color=land_color, transform=ccrs.PlateCarree(), zorder=0)
 
     # Save the figure with two panels
     plt.savefig(os.path.join(save_dir_wrf, f'ru-wrf_sst_comparison_{ymd}.png'), dpi=200)
