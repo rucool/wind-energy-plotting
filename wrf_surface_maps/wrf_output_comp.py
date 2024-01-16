@@ -20,6 +20,7 @@ import cartopy.crs as ccrs
 import cmocean as cmo
 import functions.common as cf
 import functions.plotting as pf
+import matplotlib.colors as mcolors
 
 plt.rcParams.update({'font.size': 12})  # all font sizes are 12 unless otherwise specified
 
@@ -98,6 +99,7 @@ def main(args):
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
 
+
     sst_wrf_sub, lon_wrf, lat_wrf = subset_grid(extent, sst_wrf, 'XLONG', 'XLAT')
     pf.plot_pcolormesh_panel(fig, ax, lon_wrf, lat_wrf, sst_wrf_sub.values, 
                              panel_title='RU-WRF Output', 
@@ -105,6 +107,18 @@ def main(args):
                              extend='both', 
                              cmap=cmap, 
                              clab='SST (\N{DEGREE SIGN}C)')
+    
+    # Define a colormap for land
+    # Use 'mcolors.ListedColormap' to define a single color for land
+    land_cmap = mcolors.ListedColormap(['tan'])  # Replace 'tan' with any color you prefer for land
+
+    # Overlay land
+    # 'norm' ensures that the landmask values (0 and 1) are correctly mapped to the colormap
+    land_norm = mcolors.BoundaryNorm([0, 0.5, 1], land_cmap.N)
+
+    # Adding the landmask to the plot
+    ax.pcolormesh(lon_wrf, lat_wrf, landmask, cmap=land_cmap, norm=land_norm, transform=ccrs.PlateCarree())
+
 
     plt.savefig(os.path.join(save_dir_wrf, f'ru-wrf_sst_{ymd}.png'), dpi=200)
     plt.close()
