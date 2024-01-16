@@ -110,14 +110,9 @@ def main(args):
     
     # Define a colormap for land
     # Use 'mcolors.ListedColormap' to define a single color for land
-    land_cmap = mcolors.ListedColormap(['tan'])  # Replace 'tan' with any color you prefer for land
-
     # Overlay land
-    # 'norm' ensures that the landmask values (0 and 1) are correctly mapped to the colormap
-    land_norm = mcolors.BoundaryNorm([0, 0.5, 1], land_cmap.N)
-
-    # Adding the landmask to the plot
-    ax.pcolormesh(lon_wrf, lat_wrf, landmask, cmap=land_cmap, norm=land_norm, transform=ccrs.PlateCarree())
+    land_color = 'tan'  # Replace 'tan' with any color you prefer for land
+    ax.pcolormesh(lon_wrf, lat_wrf, landmask, color=land_color, transform=ccrs.PlateCarree(), zorder=3)
 
 
     plt.savefig(os.path.join(save_dir_wrf, f'ru-wrf_sst_{ymd}.png'), dpi=200)
