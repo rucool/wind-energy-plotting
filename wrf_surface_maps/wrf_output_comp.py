@@ -99,7 +99,6 @@ def main(args):
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
 
-
     sst_wrf_sub, lon_wrf, lat_wrf = subset_grid(extent, sst_wrf, 'XLONG', 'XLAT')
     pf.plot_pcolormesh_panel(fig, ax, lon_wrf, lat_wrf, sst_wrf_sub.values, 
                              panel_title='RU-WRF Output', 
@@ -112,7 +111,7 @@ def main(args):
     # Use 'mcolors.ListedColormap' to define a single color for land
     # Overlay land
     land_color = 'tan'  # Replace 'tan' with any color you prefer for land
-    ax.pcolormesh(lon_wrf, lat_wrf, landmask, color=land_color, transform=ccrs.PlateCarree(), zorder=3)
+    ax.pcolormesh(lon_wrf, lat_wrf, landmask, color=land_color, transform=ccrs.PlateCarree(), zorder=0)
 
 
     plt.savefig(os.path.join(save_dir_wrf, f'ru-wrf_sst_{ymd}.png'), dpi=200)
