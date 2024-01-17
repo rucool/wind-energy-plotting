@@ -95,7 +95,7 @@ def main(args):
     fig.suptitle(main_title, fontsize=16, y=.98)
 
     # Plotting for the first dataset
-    vlims = [5, 30]
+    vlims = [14, 28]
     cmap = cmo.cm.thermal
     levels = MaxNLocator(nbins=16).tick_values(vlims[0], vlims[1])
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
