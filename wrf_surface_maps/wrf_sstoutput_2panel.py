@@ -105,6 +105,7 @@ def main(args):
     axs[0].coastlines()
     axs[0].set_title('Upwelling')
     fig.colorbar(cf, ax=axs[0], orientation='vertical', label='SST (\N{DEGREE SIGN}C)',shrink=0.75, aspect=20, pad=0.05)
+    
     land_color = 'tan'  # Replace 'tan' with any color you prefer for land
     axs[0].pcolormesh(lon_wrf, lat_wrf, landmask, color=land_color, transform=ccrs.PlateCarree(), zorder=0)
 
