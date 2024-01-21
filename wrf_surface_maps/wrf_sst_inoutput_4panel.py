@@ -62,8 +62,8 @@ def main(args):
         ym = ymd[0:6]
         month = pd.to_datetime(ymd).month
 
-        save_dir = os.path.join(save_dir, str(yr), ym)
-        os.makedirs(save_dir, exist_ok=True)
+        save_dir1 = os.path.join(save_dir, str(yr), ym)
+        os.makedirs(save_dir1, exist_ok=True)
 
         wrf_dir = os.path.join('/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed_windturbs/1km_wf2km_nyb', ymd)
         wrf_dir_mod = os.path.join('/home/coolgroup/ru-wrf/real-time/v4.1_parallel/processed_windturbs/1km_wf2km_nyb_modsst', ymd)
@@ -112,7 +112,7 @@ def main(args):
         sst_input_mod_sub, input_mod_lon, input_mod_lat = subset_grid(extent, sst_input_mod, 'lon', 'lat')
 
         main_title = f'RU-WRF Sea Surface Temperature: {pd.to_datetime(ymd).strftime("%Y-%m-%d")}'
-        save_file = os.path.join(save_dir, f'ru-wrf_sst_inputs_outputs_{ymd}')
+        save_file = os.path.join(save_dir1, f'ru-wrf_sst_inputs_outputs_{ymd}')
         kwargs = dict()
         kwargs['oceancolor'] = 'none'
         #kwargs['coast'] = 'low'
