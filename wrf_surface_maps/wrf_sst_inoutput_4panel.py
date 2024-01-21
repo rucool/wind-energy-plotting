@@ -181,11 +181,11 @@ if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser(description='Plot WRF SST inputs and outputs',
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    arg_parser.add_argument('start',
+    arg_parser.add_argument('-start',
                             type=str,
                             help='Start date to plot in the format YYYYmmdd (e.g. 20220601.')
 
-    arg_parser.add_argument('end',
+    arg_parser.add_argument('-end',
                             type=str,
                             help='End date to plot in the format YYYYmmdd (e.g. 20220831.')
 
