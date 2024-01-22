@@ -127,7 +127,7 @@ def main(args):
         save_file = os.path.join(save_dir1, f'ru-wrf_sst_inputs_outputs_{ymd}')
         kwargs = dict()
         kwargs['oceancolor'] = 'none'
-        kwargs['coast'] = 'low'
+        #kwargs['coast'] = 'low'
 
         fig, axs = plt.subplots(2, 2, figsize=(9, 8), sharey=True, sharex=True,
                                 subplot_kw=dict(projection=ccrs.Mercator()))
