@@ -80,8 +80,14 @@ def main(args):
 
         wrf = xr.open_dataset(os.path.join(wrf_dir, f'wrfproc_1km_{ymd}_00Z_H000.nc'))
         wrf_mod = xr.open_dataset(os.path.join(wrf_dir_mod, f'wrfproc_1km_{ymd}_00Z_H000.nc'))
-        sst_input = xr.open_dataset(os.path.join(sst_inputs_dir, 'SST_raw_yesterday.nc'))
-        sst_input_mod = xr.open_dataset(os.path.join(sst_inputs_dir_mod, 'SST_raw_yesterday.nc'))
+        try:
+            sst_input = xr.open_dataset(os.path.join(sst_inputs_dir, 'SST_raw_yesterday.nc'))
+        except FileNotFoundError:
+            sst_input = 'no_file'
+        try:
+            sst_input_mod = xr.open_dataset(os.path.join(sst_inputs_dir_mod, 'SST_raw_yesterday.nc'))
+        except FileNotFoundError:
+            sst_input_mod = 'no_file'
 
         vlims = [14, 28]
         cmap = cmo.cm.thermal
@@ -103,19 +109,25 @@ def main(args):
         sst_wrf.values[lkmask] = np.nan
         sst_wrf_mod.values[lkmask] = np.nan
 
-        sst_input = np.squeeze(sst_input.sst)
-        sst_input_mod = np.squeeze(sst_input_mod.sst)
+        try:
+            sst_input = np.squeeze(sst_input.sst)
+            sst_input_sub, input_lon, input_lat = subset_grid(extent, sst_input, 'lon', 'lat')
+        except AttributeError:
+            sst_input_sub = None
+        try:
+            sst_input_mod = np.squeeze(sst_input_mod.sst)
+            sst_input_mod_sub, input_mod_lon, input_mod_lat = subset_grid(extent, sst_input_mod, 'lon', 'lat')
+        except AttributeError:
+            sst_input_mod_sub = None
 
         sst_wrf_sub, wrf_sub_lon, wrf_sub_lat = subset_grid(extent, sst_wrf, 'XLONG', 'XLAT')
         sst_wrf_mod_sub, wrf_sub_mod_lon, wrf_sub_mod_lat = subset_grid(extent, sst_wrf_mod, 'XLONG', 'XLAT')
-        sst_input_sub, input_lon, input_lat = subset_grid(extent, sst_input, 'lon', 'lat')
-        sst_input_mod_sub, input_mod_lon, input_mod_lat = subset_grid(extent, sst_input_mod, 'lon', 'lat')
 
         main_title = f'RU-WRF Sea Surface Temperature: {pd.to_datetime(ymd).strftime("%Y-%m-%d")}'
         save_file = os.path.join(save_dir1, f'ru-wrf_sst_inputs_outputs_{ymd}')
         kwargs = dict()
         kwargs['oceancolor'] = 'none'
-        #kwargs['coast'] = 'low'
+        kwargs['coast'] = 'low'
 
         fig, axs = plt.subplots(2, 2, figsize=(9, 8), sharey=True, sharex=True,
                                 subplot_kw=dict(projection=ccrs.Mercator()))
@@ -135,9 +147,11 @@ def main(args):
         cplt.create(extent, ax=ax4, **kwargs)
 
         contour_list = [5, 10, 15, 20, 25, 30]
-        pf.add_contours(ax1, input_lon, input_lat, sst_input_sub.values, contour_list)
+        if type(sst_input_sub) == xr.core.dataarray.DataArray:
+            pf.add_contours(ax1, input_lon, input_lat, sst_input_sub.values, contour_list)
         pf.add_contours(ax2, wrf_sub_lon, wrf_sub_lat, sst_wrf_sub.values, contour_list)
-        pf.add_contours(ax3, input_mod_lon, input_mod_lat, sst_input_mod_sub.values, contour_list)
+        if type(sst_input_mod_sub) == xr.core.dataarray.DataArray:
+            pf.add_contours(ax3, input_mod_lon, input_mod_lat, sst_input_mod_sub.values, contour_list)
         pf.add_contours(ax4, wrf_sub_mod_lon, wrf_sub_mod_lat, sst_wrf_mod_sub.values, contour_list)
 
         kwargs = dict()
@@ -146,10 +160,16 @@ def main(args):
         kwargs['extend'] = 'both'
         kwargs['cmap'] = cmap
         kwargs['title_pad'] = 8
-        pf.plot_pcolormesh_panel(fig, ax1, input_lon, input_lat, sst_input_sub.values, **kwargs)
+        if type(sst_input_sub) == xr.core.dataarray.DataArray:
+            pf.plot_pcolormesh_panel(fig, ax1, input_lon, input_lat, sst_input_sub.values, **kwargs)
+        else:
+            ax1.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
         kwargs['panel_title'] = f'Input Modified SST'
-        pf.plot_pcolormesh_panel(fig, ax3, input_mod_lon, input_mod_lat, sst_input_mod_sub.values, **kwargs)
+        if type(sst_input_mod_sub) == xr.core.dataarray.DataArray:
+            pf.plot_pcolormesh_panel(fig, ax3, input_mod_lon, input_mod_lat, sst_input_mod_sub.values, **kwargs)
+        else:
+            ax3.set_title(kwargs['panel_title'], fontsize=15, pad=kwargs['title_pad'])
 
         kwargs['panel_title'] = 'RU-WRF Output SST'
         kwargs['clab'] = 'SST (\N{DEGREE SIGN}C)'
